@@ -1,0 +1,37 @@
+cc_library(
+    name = "win_raylib",
+    hdrs = glob(["raylib/include/*.h"]),
+    includes = ["raylib/include"],
+    srcs = ["raylib/lib/raylib.lib"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+	name = "lin_raylib",
+	hdrs = glob(["raylib/include/*.h"]),
+	includes = ["raylib/include"],
+	srcs = ["raylib/lib/libraylib.a"],
+	visibility = ["//visibility:public"],
+)
+
+cc_library(
+	name = "win_deps",
+	deps = [
+		"//vendor/EasyNet:easynet",
+		"//platform:win_deps",
+		":win_raylib",
+	],
+	linkopts = [
+		"-DEFAULTLIB:ws2_32.lib",
+	],
+	visibility = ["//visibility:public"],
+)
+
+cc_library(
+	name = "lin_deps",
+	deps = [
+		":lin_raylib",
+		"//vendor/EasyNet:easynet",
+	],
+	visibility = ["//visibility:public"],
+)

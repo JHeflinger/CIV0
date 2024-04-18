@@ -1,0 +1,3 @@
+[submodule "vendor/EasyNet"]
+	path = vendor/EasyNet
+	url = https://github.com/JHeflinger/EasyNet.git

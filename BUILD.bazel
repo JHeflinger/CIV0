@@ -1,0 +1,35 @@
+cc_library(
+    name = "win_game_lib",
+    includes = ["src"],
+    srcs = glob(["src/**/*.c"]),
+    hdrs = glob(["src/**/*.h"]),
+    deps = [
+        "//vendor:win_deps",
+    ],
+)
+
+cc_library(
+    name = "lin_game_lib",
+    includes = ["src"],
+    srcs = glob(["src/**/*.c"]),
+    hdrs = glob(["src/**/*.h"]),
+	deps = [
+		"//vendor:lin_deps",
+	],
+)
+
+cc_binary(
+    name = "windows_binary",
+    srcs = ["src/main.c"],
+    deps = [
+        ":win_game_lib"
+    ],
+)
+
+cc_binary(
+	name = "linux_binary",
+	srcs = ["src/main.c"],
+	deps = [
+		":lin_game_lib",
+	],
+)
