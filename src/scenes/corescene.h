@@ -29,6 +29,7 @@ void DrawCoreScene();
 void DrawDevObjects();
 void DrawDevUI();
 void UpdateCoreScene();
+void UpdateCoreCamera();
 void InitializeCoreScene();
 void MainCoreScene();
 void CoreBackupNetworkSetup();

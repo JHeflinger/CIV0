@@ -120,9 +120,14 @@ void MainCoreScene() {
 	// update input modules
 	UpdateSmartInput();
 
-	// update velocity
+	// update camera
+	UpdateCoreCamera();
+}
+
+void UpdateCoreCamera() {
+	static Vector2 mousepos_old;
 	float ft = GetFrameTime();
-	float speed = CELLSIZE * 10;
+	float speed = CELLSIZE * 0.5;
 	Vector2 vel = { 0 };
 	switch (PeekWS()) {
 		case 'w':
@@ -148,9 +153,17 @@ void MainCoreScene() {
 		vel.x /= SQRT2;
 		vel.y /= SQRT2;
 	}
+	g_Camera.target.x += vel.x * speed;
+	g_Camera.target.y += vel.y * speed;
+	g_Camera.zoom += GetMouseWheelMove() * 0.1f;
+	g_Camera.zoom = g_Camera.zoom < 0.1f ? 0.1f : g_Camera.zoom;
 
-	// update camera
-	//g_Camera.target = (Vector2){ g_PlayerLocation.x + g_PlayerSize.x/2.0f, g_PlayerLocation.y + g_PlayerSize.y/2.0f };
+	Vector2 currmousepos = GetMousePosition();
+	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+		g_Camera.target.x -= (currmousepos.x - mousepos_old.x) / g_Camera.zoom;
+		g_Camera.target.y -= (currmousepos.y - mousepos_old.y) / g_Camera.zoom;
+	}
+	mousepos_old = currmousepos;
 }
 
 void CoreBackupNetworkSetup() {
