@@ -13,7 +13,6 @@
 CoreSceneState        g_State              = CORE_NONE;
 CoreNetworkObject     g_NetworkObject      = { 0 };
 Camera2D              g_Camera             = { 0 };
-CollisionMap*         g_CollisionMap       = NULL;
 uint32_t              g_Ping               = -1;
 
 void DrawCoreScene() {
@@ -41,18 +40,6 @@ void DrawDevObjects() {
 		DrawLine(i*stepsize, -1*gridsize*stepsize, i*stepsize, gridsize*stepsize, LIGHTGRAY);
 		DrawLine(-1*gridsize*stepsize, i*stepsize, gridsize*stepsize, i*stepsize, LIGHTGRAY);
 		DrawLine(-1*gridsize*stepsize, -1*i*stepsize, gridsize*stepsize, -1*i*stepsize, LIGHTGRAY);
-	}
-
-	// draw collision boxes
-	if (g_CollisionMap != NULL) {
-		for (int y = 0; y < g_CollisionMap->height; y++) {
-			for (int x = 0; x < g_CollisionMap->width; x++) {
-				if (g_CollisionMap->data[x][y] == 'B') {
-					Rectangle hitbox = {x*CELLSIZE + g_CollisionMap->x*CELLSIZE, y*CELLSIZE + g_CollisionMap->y*CELLSIZE, CELLSIZE, CELLSIZE};
-					DrawRectangleRec(hitbox, GREEN);
-				}
-			}
-		}
 	}
 }
 
@@ -102,15 +89,6 @@ void InitializeCoreScene() {
     g_Camera.offset = (Vector2){ GetScreenWidth()/2.0f, GetScreenHeight()/2.0f };
     g_Camera.rotation = 0.0f;
     g_Camera.zoom = 1.0f;
-
-	// initialize collision map 
-	Datamap* coldata = GenerateDatamap(TANKS_MAP);
-	g_CollisionMap = GenerateCollisionMap();
-	LoadCollisionChunk(g_CollisionMap, coldata);
-	FreeDatamap(coldata);
-	//coldata = GenerateDatamap(DEV_MAP_2);
-	//LoadCollisionChunk(g_CollisionMap, coldata);
-	//FreeDatamap(coldata);
 
 	// change state
 	g_State = CORE_MAIN;
@@ -245,7 +223,7 @@ void UpdateCoreNetworkService() {
 }
 
 void CleanCoreScene() {
-	FreeCollisionMap(g_CollisionMap);
+
 }
 
 EZN_STATUS ConnectAsClient(ezn_Client* client, EZN_SOCKET serversock) {
