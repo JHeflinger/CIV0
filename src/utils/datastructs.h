@@ -3,7 +3,6 @@
 
 #include "core/logger.h"
 #include "easynet.h"
-#include "objects/projectile.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -136,6 +135,5 @@ DECLARE_ARRLIST(int16_t);
 DECLARE_ARRLIST(int32_t);
 DECLARE_ARRLIST(int64_t);
 DECLARE_ARRLIST(EZN_SOCKET);
-DECLARE_ARRLIST_NAMED(ProjectilePtr, Projectile*);
 
 #endif

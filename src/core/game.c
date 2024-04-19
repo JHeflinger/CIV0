@@ -1,5 +1,4 @@
 #include "game.h"
-#include "scenes/startscene.h"
 #include "scenes/corescene.h"
 #include "core/logger.h"
 #include "raylib.h"
@@ -32,8 +31,8 @@ void ManageScenes() {
 	// manage game scenes
     switch(g_CurrentState) {
         case TITLE:
-			UpdateStartScene();
-            DrawStartScene();
+			//UpdateStartScene();
+            //DrawStartScene();
             break;
         case CORE:
 			UpdateCoreScene();
