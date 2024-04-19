@@ -13,5 +13,5 @@ void ClearCells(Cellmap* map) {
 }
 
 char GetCell(Cellmap* map, int64_t x, int64_t y) {
-    
+    return '\0';
 }

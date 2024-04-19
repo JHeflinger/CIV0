@@ -104,7 +104,6 @@ void MainCoreScene() {
 
 void UpdateCoreCamera() {
 	static Vector2 mousepos_old;
-	float ft = GetFrameTime();
 	float speed = CELLSIZE * 0.5;
 	Vector2 vel = { 0 };
 	switch (PeekWS()) {

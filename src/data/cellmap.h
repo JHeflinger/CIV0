@@ -2,6 +2,7 @@
 #define CELLMAP_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct {
     int64_t x;
