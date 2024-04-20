@@ -7,12 +7,6 @@
 #include <stdint.h>
 #include <string.h>
 
-// static structs
-typedef struct {
-    int64_t x;
-    int64_t y;
-} Coordinate;
-
 // dynamic structs
 #define DECLARE_ARRLIST(T) \
 typedef struct { \
@@ -142,6 +136,5 @@ DECLARE_ARRLIST(int16_t);
 DECLARE_ARRLIST(int32_t);
 DECLARE_ARRLIST(int64_t);
 DECLARE_ARRLIST(EZN_SOCKET);
-DECLARE_ARRLIST(Coordinate);
 
 #endif

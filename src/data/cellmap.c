@@ -12,10 +12,6 @@ void AddCell(Cellmap* map, int64_t x, int64_t y, char id) {
         map->data = calloc(1, sizeof(char*));
         map->data[0] = calloc(1, sizeof(char));
         map->data[0][0] = id;
-        Coordinate coord;
-        coord.x = 0;
-        coord.y = 0;
-        ARRLIST_Coordinate_add(&(map->active), coord);
     } else {
         int64_t datax = x - map->x;
         int64_t datay = y - map->y;
@@ -56,35 +52,13 @@ void AddCell(Cellmap* map, int64_t x, int64_t y, char id) {
             map->data = new_data;
             AddCell(map, x, y, id);
         } else {
-            if (map->data[(size_t)datax][(size_t)datay] != '\0') {
-                for (size_t i = 0; i < map->active.size; i++) {
-                    if (map->active.data[i].x == datax && map->active.data[i].y == datay) {
-                        ARRLIST_Coordinate_remove(&(map->active), i);
-                        break;
-                    }
-                }
-            }
             map->data[(size_t)datax][(size_t)datay] = id;
-            Coordinate coord;
-            coord.x = x;
-            coord.y = y;
-            ARRLIST_Coordinate_add(&(map->active), coord);
         }
     }
 }
 
 void RemoveCell(Cellmap* map, int64_t x, int64_t y) {
-    int64_t datax = x - map->x;
-    int64_t datay = y - map->y;
-    if (map->data[(size_t)(datax)][(size_t)(datay)] != '\0') {
-        for (size_t i = 0; i < map->active.size; i++) {
-            if (map->active.data[i].x == datax && map->active.data[i].y == datay) {
-                ARRLIST_Coordinate_remove(&(map->active), i);
-                break;
-            }
-        }
-        map->data[(size_t)(datax)][(size_t)(datay)] = '\0';
-    }
+    map->data[(size_t)(x - map->x)][(size_t)(y - map->y)] = '\0';
 }
 
 void ClearCells(Cellmap* map) {
@@ -96,7 +70,6 @@ void ClearCells(Cellmap* map) {
     map->y = 0;
     map->width = 0;
     map->height = 0;
-    ARRLIST_Coordinate_clear(&(map->active));
 }
 
 char GetCell(Cellmap* map, int64_t x, int64_t y) {

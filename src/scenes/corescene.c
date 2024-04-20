@@ -24,7 +24,7 @@ void DrawCoreScene() {
 
 	DrawCells();
 
-	DrawDevObjects();
+	//DrawDevObjects();
 
 	EndMode2D();
 
@@ -34,17 +34,21 @@ void DrawCoreScene() {
 }
 
 void DrawCells() {
-	Coordinate coord;
-	for (size_t i = 0; i < g_Map.active.size; i++) {
-		coord = g_Map.active.data[i];
-		Rectangle rect = { (float)coord.x * CELLSIZE, (float)coord.y * CELLSIZE, CELLSIZE, CELLSIZE };
-		switch(GetCell(&g_Map, coord.x, coord.y)) {
-			case 'R':
-				DrawRectangleRec(rect, RED);
-				break;
-			default:
-				LOG_WARN("Unintentional cell detected %d, %d", (int)coord.x, (int)coord.y);
-				break;
+	char cell_id;
+	for (size_t y = 0; y < g_Map.height; y++) {
+		for (size_t x = 0; x < g_Map.width; x++) {
+			cell_id = g_Map.data[x][y];
+			if (cell_id != '\0') {
+				Rectangle rect = { (float)(g_Map.x + (int64_t)x) * CELLSIZE, (float)(g_Map.y + (int64_t)y) * CELLSIZE, CELLSIZE, CELLSIZE };
+				switch (cell_id) {
+					case 'R':
+						DrawRectangleRec(rect, RED);
+						break;
+					default:
+						LOG_FATAL("Unknown cell detected - unable to handle \'%c\' : %lu, %lu", cell_id, x, y);
+						break;
+				}
+			}
 		}
 	}
 }
@@ -109,13 +113,15 @@ void InitializeCoreScene() {
     g_Camera.zoom = 1.0f;
 
 	// erm, what!
-	AddCell(&g_Map, 0, 0, 'R');
-	AddCell(&g_Map, 9, 10, 'R');
+	AddCell(&g_Map, 0, -100, 'R');
+	AddCell(&g_Map, 0, 100, 'R');
+	AddCell(&g_Map, 100, 0, 'R');
+	AddCell(&g_Map, -100, 0, 'R');
+	AddCell(&g_Map, 0, 1, 'R');
+	AddCell(&g_Map, 1, 2, 'R');
 	AddCell(&g_Map, 2, 2, 'R');
-	AddCell(&g_Map, -4, 10, 'R');
-	AddCell(&g_Map, 1, 1, 'R');
-	AddCell(&g_Map, -10, 3, 'R');
-	AddCell(&g_Map, -4, -8, 'R');
+	AddCell(&g_Map, 2, 0, 'R');
+	AddCell(&g_Map, 2, 1, 'R');
 
 	// change state
 	g_State = CORE_MAIN;
@@ -127,6 +133,47 @@ void MainCoreScene() {
 
 	// update camera
 	UpdateCoreCamera();
+
+	// update cells
+	UpdateCells();
+
+	// update user input
+	UpdateUser();
+}
+
+void UpdateUser() {
+
+}
+
+void UpdateCells() {
+	static float time;
+	time += GetFrameTime();
+	if (time < CYCLE) return;
+	else time = 0.0f;
+	uint8_t cell_id;
+	for (size_t y = 0; y < g_Map.height; y++) {
+		for (size_t x = 0; x < g_Map.width; x++) {
+			cell_id = g_Map.data[x][y];
+			int num_neighbors = 0;
+			for (int i = -1; i < 2; i++)
+				for (int j = -1; j < 2; j++)
+					if ((i != 0 || j != 0) && (x + i) >= 0 && (y + j) >= 0 && (x + i) < g_Map.width && (y + j) < g_Map.height)
+						if (g_Map.data[x + i][y + j] >= 'A' + DEATH_MARK || (g_Map.data[x + i][y + j] <= 'Z' && g_Map.data[x + i][y + j] >= 'A'))
+							num_neighbors++;
+			if (cell_id != '\0') {
+				if (num_neighbors < 2 || num_neighbors > 3) g_Map.data[x][y] += DEATH_MARK;
+			} else {
+				if (num_neighbors == 3) g_Map.data[x][y] = 'r';
+			}
+		}
+	}
+	for (size_t y = 0; y < g_Map.height; y++) {
+		for (size_t x = 0; x < g_Map.width; x++) {
+			cell_id = g_Map.data[x][y];
+			if (cell_id >= 'A' + DEATH_MARK) g_Map.data[x][y] = '\0'; // marked for death
+			else if (cell_id >= 'a') g_Map.data[x][y] = cell_id -= ('a' - 'A'); // marked for life
+		}
+	}
 }
 
 void UpdateCoreCamera() {

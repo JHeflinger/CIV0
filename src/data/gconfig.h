@@ -12,5 +12,7 @@
 #define CELLSIZE 20 
 #define DEBUG_SINGLEPLAYER
 #define IOTA 0.0001f
+#define DEATH_MARK 100
+#define CYCLE 0.1f
 
 #endif
