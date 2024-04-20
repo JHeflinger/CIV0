@@ -45,7 +45,7 @@ void DrawCells() {
 						DrawRectangleRec(rect, RED);
 						break;
 					default:
-						LOG_FATAL("Unknown cell detected - unable to handle \'%c\' : %lu, %lu", cell_id, x, y);
+						LOG_FATAL("Unknown cell detected - unable to handle \'%c\'", cell_id);
 						break;
 				}
 			}
@@ -142,7 +142,10 @@ void MainCoreScene() {
 }
 
 void UpdateUser() {
-
+	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
+		AddCell(&(g_Map), (int64_t)(m_coords.x / CELLSIZE) - 1, (int64_t)(m_coords.y / CELLSIZE) - 1, 'R');
+	}
 }
 
 void UpdateCells() {
@@ -210,7 +213,7 @@ void UpdateCoreCamera() {
 	g_Camera.zoom = g_Camera.zoom < 0.1f ? 0.1f : g_Camera.zoom;
 
 	Vector2 currmousepos = GetMousePosition();
-	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+	if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
 		g_Camera.target.x -= (currmousepos.x - mousepos_old.x) / g_Camera.zoom;
 		g_Camera.target.y -= (currmousepos.y - mousepos_old.y) / g_Camera.zoom;
 	}
