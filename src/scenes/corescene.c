@@ -3,10 +3,9 @@
 #include "core/input.h"
 #include "utils/timeutils.h"
 #include "utils/numbers.h"
-#include "data/datamap.h"
-#include "data/collisionmap.h"
 #include "data/baked.h"
 #include "data/gconfig.h"
+#include "data/cellmap.h"
 #include "raylib.h"
 #include <math.h>
 
@@ -14,6 +13,7 @@ CoreSceneState        g_State              = CORE_NONE;
 CoreNetworkObject     g_NetworkObject      = { 0 };
 Camera2D              g_Camera             = { 0 };
 uint32_t              g_Ping               = -1;
+Cellmap               g_Map                = { 0 };
 
 void DrawCoreScene() {
     BeginDrawing();
@@ -22,6 +22,8 @@ void DrawCoreScene() {
     
 	BeginMode2D(g_Camera);
 
+	DrawCells();
+
 	DrawDevObjects();
 
 	EndMode2D();
@@ -29,6 +31,22 @@ void DrawCoreScene() {
 	DrawDevUI();
 
     EndDrawing();
+}
+
+void DrawCells() {
+	Coordinate coord;
+	for (size_t i = 0; i < g_Map.active.size; i++) {
+		coord = g_Map.active.data[i];
+		Rectangle rect = { (float)coord.x * CELLSIZE, (float)coord.y * CELLSIZE, CELLSIZE, CELLSIZE };
+		switch(GetCell(&g_Map, coord.x, coord.y)) {
+			case 'R':
+				DrawRectangleRec(rect, RED);
+				break;
+			default:
+				LOG_WARN("Unintentional cell detected %d, %d", (int)coord.x, (int)coord.y);
+				break;
+		}
+	}
 }
 
 void DrawDevObjects() {
@@ -89,6 +107,15 @@ void InitializeCoreScene() {
     g_Camera.offset = (Vector2){ GetScreenWidth()/2.0f, GetScreenHeight()/2.0f };
     g_Camera.rotation = 0.0f;
     g_Camera.zoom = 1.0f;
+
+	// erm, what!
+	AddCell(&g_Map, 0, 0, 'R');
+	AddCell(&g_Map, 9, 10, 'R');
+	AddCell(&g_Map, 2, 2, 'R');
+	AddCell(&g_Map, -4, 10, 'R');
+	AddCell(&g_Map, 1, 1, 'R');
+	AddCell(&g_Map, -10, 3, 'R');
+	AddCell(&g_Map, -4, -8, 'R');
 
 	// change state
 	g_State = CORE_MAIN;

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "utils/datastructs.h"
 
 typedef struct {
     int64_t x;
@@ -10,6 +11,7 @@ typedef struct {
     size_t width;
     size_t height;
     char** data;
+    ARRLIST_Coordinate active;
 } Cellmap;
 
 void AddCell(Cellmap* map, int64_t x, int64_t y, char id);
