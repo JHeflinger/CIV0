@@ -2,6 +2,7 @@
 #define LOGGER_H
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define LOG_RESET "\033[0m"
 #define LOG_RED "\033[31m"

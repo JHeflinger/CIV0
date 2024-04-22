@@ -9,4 +9,7 @@ typedef enum {
 void RunGame();
 void ManageScenes();
 
+// temp
+void trash_func(int var);
+
 #endif

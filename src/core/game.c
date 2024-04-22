@@ -1,14 +1,21 @@
 #include "game.h"
 #include "scenes/corescene.h"
 #include "core/logger.h"
+#include "network/network.h"
 #include "raylib.h"
-#include "easynet.h"
 
 GameState g_CurrentState = CORE;
 
+// temp
+int server_or_client;
+void trash_func(int var) { server_or_client = var; }
+
 void RunGame() {
+	// disable trivial logs
+	SetTraceLogLevel(LOG_ERROR);
+
 	// initialize easynet
-	ezn_init();
+	InitializeNetwork(server_or_client);
 
 	// initialize window
 	SetConfigFlags(FLAG_VSYNC_HINT);
@@ -21,10 +28,8 @@ void RunGame() {
 	// close window
     CloseWindow();
 
-	// clean up easynet safely
-	if (ezn_safe_clean() == EZN_ERROR) 
-		LOG_WARN("Unable to safely clean network resources!");
-	ezn_clean();
+	// clean up network service
+	if (!ShutdownNetwork()) LOG_FATAL("Unable to shutdown network service");
 }
 
 void ManageScenes() {
