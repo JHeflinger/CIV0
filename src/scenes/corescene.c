@@ -144,7 +144,7 @@ void MainCoreScene() {
 void UpdateUser() {
 	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
-		AddCell(&(g_Map), (int64_t)(m_coords.x / CELLSIZE) - 1, (int64_t)(m_coords.y / CELLSIZE) - 1, 'R');
+		AddCell(&(g_Map), (int64_t)(m_coords.x / CELLSIZE), (int64_t)(m_coords.y / CELLSIZE), 'R');
 	}
 }
 

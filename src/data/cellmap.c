@@ -18,9 +18,9 @@ void AddCell(Cellmap* map, int64_t x, int64_t y, char id) {
         if (datax < 0 || datay < 0) {
             size_t new_w = datax < 0 ? map->width * 2 : map->width;
             size_t new_h = datay < 0 ? map->height * 2 : map->height;
-            char** new_data = calloc(new_w, sizeof(char*));
+            uint8_t** new_data = calloc(new_w, sizeof(uint8_t*));
             for (size_t i = 0; i < new_w; i++) {
-                new_data[i] = calloc(new_h, sizeof(char));
+                new_data[i] = calloc(new_h, sizeof(uint8_t));
                 for (size_t j = 0; j < new_h; j++) new_data[i][j] = '\0';
             }
             for (size_t i = 0; i < map->width; i++)
@@ -37,9 +37,9 @@ void AddCell(Cellmap* map, int64_t x, int64_t y, char id) {
         } else if (datax >= map->width || datay >= map->height) {
             size_t new_w = datax >= map->width ? map->width * 2 : map->width;
             size_t new_h = datay >= map->height ? map->height * 2 : map->height;
-            char** new_data = calloc(new_w, sizeof(char*));
+            uint8_t** new_data = calloc(new_w, sizeof(uint8_t*));
             for (size_t i = 0; i < new_w; i++) {
-                new_data[i] = calloc(new_h, sizeof(char));
+                new_data[i] = calloc(new_h, sizeof(uint8_t));
                 for (size_t j = 0; j < new_h; j++) new_data[i][j] = '\0';
             }
             for (size_t i = 0; i < map->width; i++)

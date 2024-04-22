@@ -3,5 +3,7 @@ MINOR:
 MEDIUM:
 
 MAJOR:
+    - set up server client architecture so they can all spawn stuff
+    - then add in nuance in client side
 
 COMPLETED:
