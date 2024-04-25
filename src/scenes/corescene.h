@@ -12,19 +12,6 @@ typedef enum {
 	CORE_MAIN
 } CoreSceneState;
 
-typedef enum {
-	CORE_IS_UNKNOWN = 0,
-	CORE_IS_HOST,
-	CORE_IS_CLIENT
-} CoreNetworkDescriptor;
-
-typedef struct {
-	CoreNetworkDescriptor m_Descriptor;
-	ezn_Server* m_HostDevice;
-	ezn_Client* m_ClientDevice;
-	ARRLIST_EZN_SOCKET m_ConnectedDevices;
-} CoreNetworkObject;
-
 void DrawCoreScene();
 void DrawCells();
 void DrawDevObjects();
@@ -35,12 +22,6 @@ void UpdateCells();
 void UpdateUser();
 void UpdateCoreCamera();
 void InitializeCoreScene();
-void CoreBackupNetworkSetup();
-void CheckCoreNetworkService();
-void UpdateCoreNetworkService();
 void CleanCoreScene();
-
-EZN_STATUS ConnectAsClient(ezn_Client* client, EZN_SOCKET serversock);
-EZN_STATUS HostAsServer(ezn_Server* server, EZN_SOCKET clientsock);
 
 #endif
