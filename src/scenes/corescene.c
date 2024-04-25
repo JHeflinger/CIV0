@@ -152,6 +152,7 @@ void UpdateCells() {
 		if (time < CYCLE) return;
 		else time = 0.0f;
 		uint8_t cell_id;
+		ARRLIST_Coordinate changed = { 0 };
 		for (size_t y = 0; y < g_Map.height; y++) {
 			for (size_t x = 0; x < g_Map.width; x++) {
 				cell_id = g_Map.data[x][y];
@@ -171,10 +172,34 @@ void UpdateCells() {
 		for (size_t y = 0; y < g_Map.height; y++) {
 			for (size_t x = 0; x < g_Map.width; x++) {
 				cell_id = g_Map.data[x][y];
-				if (cell_id >= 'A' + DEATH_MARK) g_Map.data[x][y] = '\0'; // marked for death
-				else if (cell_id >= 'a') g_Map.data[x][y] = cell_id -= ('a' - 'A'); // marked for life
+				Coordinate coord;
+				coord.x = x;
+				coord.y = y;
+				if (cell_id >= 'A' + DEATH_MARK) {
+					g_Map.data[x][y] = '\0'; // marked for death
+					coord.value = '\0';
+					ARRLIST_Coordinate_add(&changed, coord);
+				}
+				else if (cell_id >= 'a') {
+					g_Map.data[x][y] = cell_id - ('a' - 'A'); // marked for life
+					coord.value = cell_id - ('a' - 'A');
+					ARRLIST_Coordinate_add(&changed, coord);
+				}
 			}
 		}
+		DistributeData((EZN_BYTE*)changed.data, changed.size * sizeof(Coordinate));
+		ARRLIST_Coordinate_clear(&changed);
+	} else if (GetNetworkType() == CLIENT) {
+		int found_data = TRUE;
+		Coordinate coord = { 0 };
+		while (found_data) {
+			GrabData((EZN_BYTE*)&coord, sizeof(Coordinate), &found_data);
+			if (found_data) {
+				g_Map.data[coord.x][coord.y] = coord.value;
+			}
+		}
+	} else {
+		LOG_FATAL("Unknown getwork type");
 	}
 }
 

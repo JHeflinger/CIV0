@@ -7,6 +7,13 @@
 #include <stdint.h>
 #include <string.h>
 
+// static structs 
+typedef struct {
+	size_t x;
+	size_t y;
+	char value;
+} Coordinate;
+
 // dynamic structs
 #define DECLARE_ARRLIST(T) \
 typedef struct { \
@@ -26,9 +33,9 @@ void ARRLIST_##T##_add(ARRLIST_##T* list, T element) { \
 		list->data = (T*)calloc(1, sizeof(T)); \
 		list->size = 1; \
 		list->maxsize = 1; \
-		list->data[0] = element; \
+		memcpy(list->data, &element, sizeof(T)); \
 	} else if (list->size < list->maxsize) { \
-		list->data[list->size] = element; \
+		memcpy(&(list->data[list->size]), &element, sizeof(T)); \
 		list->size++; \
 	} else { \
 		list->maxsize *= 2; \
@@ -36,7 +43,7 @@ void ARRLIST_##T##_add(ARRLIST_##T* list, T element) { \
 		memcpy(newdata, list->data, sizeof(T)*list->size); \
 		free(list->data); \
 		list->data = newdata; \
-		list->data[list->size] = element; \
+		memcpy(&(list->data[list->size]), &element, sizeof(T)); \
 		list->size++; \
 	} \
 } \
@@ -83,9 +90,9 @@ void ARRLIST_##name##_add(ARRLIST_##name* list, T element) { \
 		list->data = (T*)calloc(1, sizeof(T)); \
 		list->size = 1; \
 		list->maxsize = 1; \
-		list->data[0] = element; \
+		memcpy(list->data, &element, sizeof(T)); \
 	} else if (list->size < list->maxsize) { \
-		list->data[list->size] = element; \
+		memcpy(&(list->data[list->size]), &element, sizeof(T)); \
 		list->size++; \
 	} else { \
 		list->maxsize *= 2; \
@@ -93,7 +100,7 @@ void ARRLIST_##name##_add(ARRLIST_##name* list, T element) { \
 		memcpy(newdata, list->data, sizeof(T)*list->size); \
 		free(list->data); \
 		list->data = newdata; \
-		list->data[list->size] = element; \
+		memcpy(&(list->data[list->size]), &element, sizeof(T)); \
 		list->size++; \
 	} \
 } \
@@ -136,5 +143,6 @@ DECLARE_ARRLIST(int16_t);
 DECLARE_ARRLIST(int32_t);
 DECLARE_ARRLIST(int64_t);
 DECLARE_ARRLIST(EZN_SOCKET);
+DECLARE_ARRLIST(Coordinate);
 
 #endif
