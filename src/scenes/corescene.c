@@ -11,6 +11,7 @@
 #include <math.h>
 
 CoreSceneState        g_State              = CORE_NONE;
+InteractionState      g_InteractionState   = FREE_CAMERA;
 Camera2D              g_Camera             = { 0 };
 uint32_t              g_Ping               = -1;
 Cellmap               g_Map                = { 0 };
@@ -24,11 +25,11 @@ void DrawCoreScene() {
 
 	DrawCells();
 
-	//DrawDevObjects();
+	DrawArtifacts();
 
 	EndMode2D();
 
-	DrawDevUI();
+	DrawUI();
 
     EndDrawing();
 }
@@ -53,19 +54,22 @@ void DrawCells() {
 	}
 }
 
-void DrawDevObjects() {
+void DrawArtifacts() {
 	// draw grid
 	int stepsize = CELLSIZE;
 	int gridsize = 100;
+	int origin_x = g_Camera.target.x / CELLSIZE;
+	int origin_y = g_Camera.target.y / CELLSIZE;
 	for (int i = 0; i < gridsize; i++) {
-		DrawLine(-1*i*stepsize, -1*gridsize*stepsize, -1*i*stepsize, gridsize*stepsize, LIGHTGRAY);
-		DrawLine(i*stepsize, -1*gridsize*stepsize, i*stepsize, gridsize*stepsize, LIGHTGRAY);
-		DrawLine(-1*gridsize*stepsize, i*stepsize, gridsize*stepsize, i*stepsize, LIGHTGRAY);
-		DrawLine(-1*gridsize*stepsize, -1*i*stepsize, gridsize*stepsize, -1*i*stepsize, LIGHTGRAY);
+		//DrawLine(-1*i*stepsize, -1*gridsize*stepsize, -1*i*stepsize, gridsize*stepsize, LIGHTGRAY);
+		//DrawLine(i*stepsize, -1*gridsize*stepsize, i*stepsize, gridsize*stepsize, LIGHTGRAY);
+		//DrawLine(-1*gridsize*stepsize, i*stepsize, gridsize*stepsize, i*stepsize, LIGHTGRAY);
+		//DrawLine(-1*gridsize*stepsize, -1*i*stepsize, gridsize*stepsize, -1*i*stepsize, LIGHTGRAY);
+		
 	}
 }
 
-void DrawDevUI() {
+void DrawUI() {
 	// fps monitor
 	char buffer[1024];
 	sprintf(buffer, "FPS: %d", (int)(1.0f/GetFrameTime()));
@@ -143,6 +147,7 @@ void UpdateUser() {
 		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
 		AddCell(&(g_Map), (int64_t)(m_coords.x / CELLSIZE), (int64_t)(m_coords.y / CELLSIZE), 'R');
 	}
+	if (IsKeyReleased(KEY_P)) g_InteractionState = g_InteractionState == FREE_CAMERA ? FREE_PLAN : FREE_CAMERA;
 }
 
 void UpdateCells() {
@@ -204,6 +209,7 @@ void UpdateCells() {
 }
 
 void UpdateCoreCamera() {
+	if (g_InteractionState != FREE_CAMERA && g_InteractionState != FREE_PLAN) return;
 	static Vector2 mousepos_old;
 	float speed = CELLSIZE * 0.5;
 	Vector2 vel = { 0 };

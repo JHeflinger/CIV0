@@ -12,10 +12,15 @@ typedef enum {
 	CORE_MAIN
 } CoreSceneState;
 
+typedef enum {
+	FREE_CAMERA,
+	FREE_PLAN,
+} InteractionState;
+
 void DrawCoreScene();
 void DrawCells();
-void DrawDevObjects();
-void DrawDevUI();
+void DrawArtifacts();
+void DrawUI();
 void UpdateCoreScene();
 void MainCoreScene();
 void UpdateCells();
