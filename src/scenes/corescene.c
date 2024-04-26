@@ -61,10 +61,12 @@ void DrawArtifacts() {
 		int origin_x = g_Camera.target.x / CELLSIZE;
 		int origin_y = g_Camera.target.y / CELLSIZE;
 		for (int i = 0; i < gridsize; i++) {
-			DrawLine((origin_x + -1*i)*CELLSIZE, (origin_y + -1*gridsize)*CELLSIZE, (origin_x + -1*i)*CELLSIZE, (origin_y + gridsize)*CELLSIZE, LIGHTGRAY);
-			DrawLine((origin_x + i)*CELLSIZE, (origin_y + -1*gridsize)*CELLSIZE, (origin_x + i)*CELLSIZE, (origin_y + gridsize)*CELLSIZE, LIGHTGRAY);
-			DrawLine((origin_x + -1*gridsize)*CELLSIZE, (origin_y + i)*CELLSIZE, (origin_x + gridsize)*CELLSIZE, (origin_y + i)*CELLSIZE, LIGHTGRAY);
-			DrawLine((origin_x + -1*gridsize)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, (origin_x + gridsize)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, LIGHTGRAY);
+			float relpos = ((float)i) / ((float)gridsize);
+			float limiter = sqrt(abs(((float)gridsize*gridsize) - (i*i)));
+			DrawLine((origin_x + -1*i)*CELLSIZE, (origin_y + -1*limiter)*CELLSIZE, (origin_x + -1*i)*CELLSIZE, (origin_y + limiter)*CELLSIZE, LIGHTGRAY);
+			DrawLine((origin_x + i)*CELLSIZE, (origin_y + -1*limiter)*CELLSIZE, (origin_x + i)*CELLSIZE, (origin_y + limiter)*CELLSIZE, LIGHTGRAY);
+			DrawLine((origin_x + -1*limiter)*CELLSIZE, (origin_y + i)*CELLSIZE, (origin_x + limiter)*CELLSIZE, (origin_y + i)*CELLSIZE, LIGHTGRAY);
+			DrawLine((origin_x + -1*limiter)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, (origin_x + limiter)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, LIGHTGRAY);
 		}
 	}
 }
@@ -143,7 +145,7 @@ void MainCoreScene() {
 }
 
 void UpdateUser() {
-	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && g_InteractionState == FREE_PLAN) {
 		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
 		AddCell(&(g_Map), (int64_t)(m_coords.x / CELLSIZE), (int64_t)(m_coords.y / CELLSIZE), 'R');
 	}
