@@ -56,16 +56,16 @@ void DrawCells() {
 
 void DrawArtifacts() {
 	// draw grid
-	int stepsize = CELLSIZE;
-	int gridsize = 100;
-	int origin_x = g_Camera.target.x / CELLSIZE;
-	int origin_y = g_Camera.target.y / CELLSIZE;
-	for (int i = 0; i < gridsize; i++) {
-		//DrawLine(-1*i*stepsize, -1*gridsize*stepsize, -1*i*stepsize, gridsize*stepsize, LIGHTGRAY);
-		//DrawLine(i*stepsize, -1*gridsize*stepsize, i*stepsize, gridsize*stepsize, LIGHTGRAY);
-		//DrawLine(-1*gridsize*stepsize, i*stepsize, gridsize*stepsize, i*stepsize, LIGHTGRAY);
-		//DrawLine(-1*gridsize*stepsize, -1*i*stepsize, gridsize*stepsize, -1*i*stepsize, LIGHTGRAY);
-		
+	if (g_InteractionState == FREE_PLAN) {
+		int gridsize = 25;
+		int origin_x = g_Camera.target.x / CELLSIZE;
+		int origin_y = g_Camera.target.y / CELLSIZE;
+		for (int i = 0; i < gridsize; i++) {
+			DrawLine((origin_x + -1*i)*CELLSIZE, (origin_y + -1*gridsize)*CELLSIZE, (origin_x + -1*i)*CELLSIZE, (origin_y + gridsize)*CELLSIZE, LIGHTGRAY);
+			DrawLine((origin_x + i)*CELLSIZE, (origin_y + -1*gridsize)*CELLSIZE, (origin_x + i)*CELLSIZE, (origin_y + gridsize)*CELLSIZE, LIGHTGRAY);
+			DrawLine((origin_x + -1*gridsize)*CELLSIZE, (origin_y + i)*CELLSIZE, (origin_x + gridsize)*CELLSIZE, (origin_y + i)*CELLSIZE, LIGHTGRAY);
+			DrawLine((origin_x + -1*gridsize)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, (origin_x + gridsize)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, LIGHTGRAY);
+		}
 	}
 }
 
