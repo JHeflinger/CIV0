@@ -34,6 +34,17 @@ void GrabData(EZN_BYTE* data, size_t size, int* found_data) {
 	*found_data = grabbed > 0 && grabbed <= size ? TRUE : FALSE;
 }
 
+void SendPacket(char packet_header, EZN_BYTE* data, size_t size) {
+	size_t sent = 0;
+	uint32_t packsize = size;
+	if (ezn_send(g_ServerConnection, (EZN_BYTE*)&packet_header, sizeof(char), &sent) == EZN_ERROR || sent != sizeof(char))
+		LOG_WARN("Unable to send data to server properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)sizeof(char));
+	if (ezn_send(g_ServerConnection, (EZN_BYTE*)&packsize, sizeof(uint32_t), &sent) == EZN_ERROR || sent != sizeof(uint32_t))
+		LOG_WARN("Unable to send data to server properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)sizeof(uint32_t));
+	if (ezn_send(g_ServerConnection, data, size, &sent) == EZN_ERROR || sent != size)
+		LOG_WARN("Unable to send data to server properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)size);
+}
+
 int InitializeNetwork(NetworkType type) {
 	ezn_init();
 	EZN_CREATE_MUTEX(g_Mutex);

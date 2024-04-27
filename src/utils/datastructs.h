@@ -14,6 +14,12 @@ typedef struct {
 	char value;
 } Coordinate;
 
+typedef struct {
+	int64_t x;
+	int64_t y;
+	char value;
+} DynamicCoordinate;
+
 // dynamic structs
 #define DECLARE_ARRLIST(T) \
 typedef struct { \
@@ -23,6 +29,7 @@ typedef struct { \
 } ARRLIST_##T; \
 \
 void ARRLIST_##T##_add(ARRLIST_##T* list, T element); \
+int ARRLIST_##T##_has(ARRLIST_##T* list, T element); \
 void ARRLIST_##T##_remove(ARRLIST_##T* list, size_t index); \
 T ARRLIST_##T##_get(ARRLIST_##T* list, size_t index); \
 void ARRLIST_##T##_clear(ARRLIST_##T* list);
@@ -48,6 +55,12 @@ void ARRLIST_##T##_add(ARRLIST_##T* list, T element) { \
 	} \
 } \
 \
+int ARRLIST_##T##_has(ARRLIST_##T* list, T element) { \
+	for (size_t i = 0; i < list->size; i++) \
+		if (memcmp(&element, &(list->data[i]), sizeof(T)) == 0) return TRUE; \
+	return FALSE; \
+} \
+\
 void ARRLIST_##T##_remove(ARRLIST_##T* list, size_t index) { \
 	if (index >= list->size) \
 		LOG_FATAL("Invalid arraylist index to remove"); \
@@ -67,7 +80,9 @@ T ARRLIST_##T##_get(ARRLIST_##T* list, size_t index) { \
 } \
 \
 void ARRLIST_##T##_clear(ARRLIST_##T* list) { \
-	free(list->data); \
+	if (list->data != NULL) \
+		free(list->data); \
+	list->data = NULL; \
 	list->size = 0; \
 	list->maxsize = 0; \
 }
@@ -80,6 +95,7 @@ typedef struct { \
 } ARRLIST_##name; \
 \
 void ARRLIST_##name##_add(ARRLIST_##name* list, T element); \
+int ARRLIST_##name##_has(ARRLIST_##name* list, T element); \
 void ARRLIST_##name##_remove(ARRLIST_##name* list, size_t index); \
 T ARRLIST_##name##_get(ARRLIST_##name* list, size_t index); \
 void ARRLIST_##name##_clear(ARRLIST_##name* list);
@@ -105,6 +121,12 @@ void ARRLIST_##name##_add(ARRLIST_##name* list, T element) { \
 	} \
 } \
 \
+int ARRLIST_##name##_has(ARRLIST_##name* list, T element) { \
+	for (size_t i = 0; i < list->size; i++) \
+		if (memcmp(&element, &(list->data[i]), sizeof(T)) == 0) return TRUE; \
+	return FALSE; \
+} \
+\
 void ARRLIST_##name##_remove(ARRLIST_##name* list, size_t index) { \
 	if (index >= list->size) \
 		LOG_FATAL("Invalid arraylist index to remove"); \
@@ -124,7 +146,9 @@ T ARRLIST_##name##_get(ARRLIST_##name* list, size_t index) { \
 } \
 \
 void ARRLIST_##name##_clear(ARRLIST_##name* list) { \
-	free(list->data); \
+	if (list->data != NULL) \
+		free(list->data); \
+	list->data = NULL; \
 	list->size = 0; \
 	list->maxsize = 0; \
 }
@@ -144,5 +168,7 @@ DECLARE_ARRLIST(int32_t);
 DECLARE_ARRLIST(int64_t);
 DECLARE_ARRLIST(EZN_SOCKET);
 DECLARE_ARRLIST(Coordinate);
+DECLARE_ARRLIST(DynamicCoordinate);
+
 
 #endif

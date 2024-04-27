@@ -10,11 +10,12 @@
 #include "raylib.h"
 #include <math.h>
 
-CoreSceneState        g_State              = CORE_NONE;
-InteractionState      g_InteractionState   = FREE_CAMERA;
-Camera2D              g_Camera             = { 0 };
-uint32_t              g_Ping               = -1;
-Cellmap               g_Map                = { 0 };
+CoreSceneState               g_State              = CORE_NONE;
+InteractionState             g_InteractionState   = FREE_CAMERA;
+Camera2D                     g_Camera             = { 0 };
+Cellmap                      g_Map                = { 0 };
+ARRLIST_DynamicCoordinate    g_QueuedCells        = { 0 };
+uint32_t                     g_Ping               = -1;
 
 void DrawCoreScene() {
     BeginDrawing();
@@ -35,6 +36,7 @@ void DrawCoreScene() {
 }
 
 void DrawCells() {
+	// draw active cells
 	char cell_id;
 	for (size_t y = 0; y < g_Map.height; y++) {
 		for (size_t x = 0; x < g_Map.width; x++) {
@@ -50,6 +52,19 @@ void DrawCells() {
 						break;
 				}
 			}
+		}
+	}
+
+	// draw queued cells
+	for (size_t i = 0; i < g_QueuedCells.size; i++) {
+		Rectangle rect = { g_QueuedCells.data[i].x * CELLSIZE, g_QueuedCells.data[i].y * CELLSIZE, CELLSIZE, CELLSIZE };
+		switch (g_QueuedCells.data[i].value) {
+			case 'R':
+				DrawRectangleRec(rect, GREEN);
+				break;
+			default:
+				LOG_FATAL("Unknown cell detected - unable to handle \'%c\'", g_QueuedCells.data[i].value);
+				break;
 		}
 	}
 }
@@ -142,13 +157,38 @@ void MainCoreScene() {
 
 	// update user input
 	UpdateUser();
+	
+	// update server (if possible)
+	UpdateServer();
 }
 
 void UpdateUser() {
+	// add queued cells
 	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && g_InteractionState == FREE_PLAN) {
 		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
-		AddCell(&(g_Map), (int64_t)(m_coords.x / CELLSIZE), (int64_t)(m_coords.y / CELLSIZE), 'R');
+		DynamicCoordinate coord;
+		coord.x = (int64_t)(m_coords.x / CELLSIZE);
+		coord.y = (int64_t)(m_coords.y / CELLSIZE);
+		coord.value = 'R';
+		if (!ARRLIST_DynamicCoordinate_has(&g_QueuedCells, coord)) 
+			ARRLIST_DynamicCoordinate_add(&g_QueuedCells, coord);
 	}
+
+	// send queued cells
+	if (IsKeyReleased(KEY_ENTER) && g_InteractionState == FREE_PLAN) {
+		if (GetNetworkType() == SERVER) {
+			for (size_t i = 0; i < g_QueuedCells.size; i++)
+				if (GetCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y, g_QueuedCells.data[i].value) == '\0')
+					AddCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y, g_QueuedCells.data[i].value);
+		} else if (GetNetworkType() == CLIENT) {
+			SendPacket('q', (EZN_BYTE*)g_QueuedCells.data, g_QueuedCells.size * sizeof(DynamicCoordinate));
+		} else {
+			LOG_FATAL("Unknown network type detected");
+		}
+		ARRLIST_DynamicCoordinate_clear(&g_QueuedCells);
+	}
+
+	// switch planning states
 	if (IsKeyReleased(KEY_P)) g_InteractionState = g_InteractionState == FREE_CAMERA ? FREE_PLAN : FREE_CAMERA;
 }
 
@@ -250,6 +290,12 @@ void UpdateCoreCamera() {
 		g_Camera.target.y -= (currmousepos.y - mousepos_old.y) / g_Camera.zoom;
 	}
 	mousepos_old = currmousepos;
+}
+
+void UpdateServer() {
+	if (GetNetworkType() == SERVER) {
+		
+	}
 }
 
 void CleanCoreScene() {

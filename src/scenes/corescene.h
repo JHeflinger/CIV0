@@ -26,6 +26,7 @@ void MainCoreScene();
 void UpdateCells();
 void UpdateUser();
 void UpdateCoreCamera();
+void UpdateServer();
 void InitializeCoreScene();
 void CleanCoreScene();
 
