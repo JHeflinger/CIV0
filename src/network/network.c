@@ -45,6 +45,13 @@ void SendPacket(char packet_header, EZN_BYTE* data, size_t size) {
 		LOG_WARN("Unable to send data to server properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)size);
 }
 
+char GrabPacket(EZN_SOCKET* sock) {
+	for (size_t i = 0; i < g_ConnectedClients.size; i++) {
+		
+	}
+	return '\0';
+}
+
 int InitializeNetwork(NetworkType type) {
 	ezn_init();
 	EZN_CREATE_MUTEX(g_Mutex);
