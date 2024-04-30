@@ -1,4 +1,5 @@
 #include "datastructs.h"
+#include "data/gconfig.h"
 
 // implement custom arrlists here!
 IMPL_ARRLIST(int);

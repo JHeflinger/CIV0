@@ -76,7 +76,6 @@ void DrawArtifacts() {
 		int origin_x = g_Camera.target.x / CELLSIZE;
 		int origin_y = g_Camera.target.y / CELLSIZE;
 		for (int i = 0; i < gridsize; i++) {
-			float relpos = ((float)i) / ((float)gridsize);
 			float limiter = sqrt(abs(((float)gridsize*gridsize) - (i*i)));
 			DrawLine((origin_x + -1*i)*CELLSIZE, (origin_y + -1*limiter)*CELLSIZE, (origin_x + -1*i)*CELLSIZE, (origin_y + limiter)*CELLSIZE, LIGHTGRAY);
 			DrawLine((origin_x + i)*CELLSIZE, (origin_y + -1*limiter)*CELLSIZE, (origin_x + i)*CELLSIZE, (origin_y + limiter)*CELLSIZE, LIGHTGRAY);
@@ -178,7 +177,7 @@ void UpdateUser() {
 	if (IsKeyReleased(KEY_ENTER) && g_InteractionState == FREE_PLAN) {
 		if (GetNetworkType() == SERVER) {
 			for (size_t i = 0; i < g_QueuedCells.size; i++)
-				if (GetCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y, g_QueuedCells.data[i].value) == '\0')
+				if (GetCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y) == '\0')
 					AddCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y, g_QueuedCells.data[i].value);
 		} else if (GetNetworkType() == CLIENT) {
 			SendPacket('q', (EZN_BYTE*)g_QueuedCells.data, g_QueuedCells.size * sizeof(DynamicCoordinate));
