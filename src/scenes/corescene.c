@@ -313,3 +313,25 @@ void UpdateServer() {
 void CleanCoreScene() {
 
 }
+
+void CalculateSurroundings(int64_t x, int64_t y, char* result, size_t* count) {
+	char ids[9];
+	int vals[9];
+	for (int r = -1; r < 2; r++) {
+		for (int c = -1; c < 2; c++) {
+			char curr = GetCell(&g_Map, x + c, y + r);
+			if (curr != '\0') {
+				int found = -1;
+				for (int i = 0; i < 9; i++)
+					if (ids[i] == curr) found = i;
+				if //TODO
+			}
+		}
+	}
+	size_t max = 0;
+	for (int i = 0; i < 9; i++)
+		if (vals[i] > vals[max])
+			max = i;
+	return ids[max];
+}
+
