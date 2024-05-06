@@ -45,11 +45,26 @@ void SendPacket(char packet_header, EZN_BYTE* data, size_t size) {
 		LOG_WARN("Unable to send data to server properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)size);
 }
 
-char GrabPacket(EZN_SOCKET* sock) {
+char* GrabClientUpdate(char* packet_type, size_t* datasize) {
 	for (size_t i = 0; i < g_ConnectedClients.size; i++) {
-		
+		size_t data_rec;
+		if (ezn_ask(g_ConnectedClients.data[i], (EZN_BYTE*)packet_type, sizeof(char), &data_rec) == EZN_ERROR) {
+			LOG_FATAL("Network was unable to properly recieve client data");
+		}
+		if (data_rec == sizeof(char)) {
+			uint32_t size;
+			if (ezn_recieve(g_ConnectedClients.data[i], (EZN_BYTE*)&size, sizeof(uint32_t), &data_rec) == EZN_ERROR || data_rec != sizeof(uint32_t)) {
+				LOG_FATAL("Network was unable to properly recieve client data");
+			}
+			*datasize = (size_t)size;
+			char* data = calloc((size_t)size, sizeof(char));
+			if (ezn_recieve(g_ConnectedClients.data[i], (EZN_BYTE*)data, (size_t)size, &data_rec) == EZN_ERROR || data_rec != (size_t)size) {
+				LOG_FATAL("Network was unable to properly recieve client data");
+			}
+			return data;
+		}
 	}
-	return '\0';
+	return NULL;
 }
 
 int InitializeNetwork(NetworkType type) {

@@ -293,7 +293,24 @@ void UpdateCoreCamera() {
 
 void UpdateServer() {
 	if (GetNetworkType() == SERVER) {
-		
+		size_t datasize;
+		char packet_type;
+		char* client_data = GrabClientUpdate(&packet_type, &datasize);
+		if (client_data != NULL) {
+			LOG_INFO("Found client data!");
+			switch (packet_type) {
+				case 'q':
+					DynamicCoordinate* coords = (DynamicCoordinate*)client_data;
+					for (int i = 0; i < (datasize / sizeof(DynamicCoordinate)); i++) {
+						if (GetCell(&g_Map, coords[i].x, coords[i].y) == '\0')
+							AddCell(&g_Map, coords[i].x, coords[i].y, coords[i].value);
+					}
+					break;
+				default:
+					LOG_WARN("Unknown packet type recieved, unable to properly process client data of type %d - %c", (int)packet_type, packet_type);
+			}
+			free(client_data);
+		}
 	}
 }
 

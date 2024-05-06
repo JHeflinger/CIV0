@@ -13,7 +13,7 @@ void ConnectClient();
 void DistributeData(EZN_BYTE* data, size_t size);
 void GrabData(EZN_BYTE* data, size_t size, int* found_data);
 void SendPacket(char packet_header, EZN_BYTE* data, size_t size);
-char GrabPacket(EZN_SOCKET* sock);
+char* GrabClientUpdate(char* packet_type, size_t* datasize);
 int InitializeNetwork(NetworkType type);
 int ShutdownNetwork();
 NetworkType GetNetworkType();
