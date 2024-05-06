@@ -16,6 +16,7 @@ Camera2D                     g_Camera             = { 0 };
 Cellmap                      g_Map                = { 0 };
 ARRLIST_DynamicCoordinate    g_QueuedCells        = { 0 };
 uint32_t                     g_Ping               = -1;
+char                         g_ID                 = 'A';
 
 void DrawCoreScene() {
     BeginDrawing();
@@ -47,6 +48,9 @@ void DrawCells() {
 					case 'R':
 						DrawRectangleRec(rect, RED);
 						break;
+					case 'A':
+						DrawRectangleRec(rect, BLUE);
+						break;
 					default:
 						LOG_FATAL("Unknown cell detected - unable to handle \'%c\'", cell_id);
 						break;
@@ -58,14 +62,7 @@ void DrawCells() {
 	// draw queued cells
 	for (size_t i = 0; i < g_QueuedCells.size; i++) {
 		Rectangle rect = { g_QueuedCells.data[i].x * CELLSIZE, g_QueuedCells.data[i].y * CELLSIZE, CELLSIZE, CELLSIZE };
-		switch (g_QueuedCells.data[i].value) {
-			case 'R':
-				DrawRectangleRec(rect, GREEN);
-				break;
-			default:
-				LOG_FATAL("Unknown cell detected - unable to handle \'%c\'", g_QueuedCells.data[i].value);
-				break;
-		}
+		DrawRectangleRec(rect, GREEN);
 	}
 }
 
@@ -118,7 +115,7 @@ void InitializeCoreScene() {
 	if (GetNetworkType() == SERVER) {
 		StartServer();
 	} else if (GetNetworkType() == CLIENT) {
-		ConnectClient();
+		g_ID = ConnectClient();
 	} else {
 		LOG_FATAL("Unknown network type detected");
 	}
@@ -130,15 +127,15 @@ void InitializeCoreScene() {
     g_Camera.zoom = 1.0f;
 
 	// erm, what!
-	AddCell(&g_Map, 0, -100, 'R');
-	AddCell(&g_Map, 0, 100, 'R');
-	AddCell(&g_Map, 100, 0, 'R');
-	AddCell(&g_Map, -100, 0, 'R');
-	AddCell(&g_Map, 0, 1, 'R');
-	AddCell(&g_Map, 1, 2, 'R');
-	AddCell(&g_Map, 2, 2, 'R');
-	AddCell(&g_Map, 2, 0, 'R');
-	AddCell(&g_Map, 2, 1, 'R');
+	AddCell(&g_Map, 0, -100, g_ID);
+	AddCell(&g_Map, 0, 100, g_ID);
+	AddCell(&g_Map, 100, 0, g_ID);
+	AddCell(&g_Map, -100, 0, g_ID);
+	AddCell(&g_Map, 0, 1, g_ID);
+	AddCell(&g_Map, 1, 2, g_ID);
+	AddCell(&g_Map, 2, 2, g_ID);
+	AddCell(&g_Map, 2, 0, g_ID);
+	AddCell(&g_Map, 2, 1, g_ID);
 
 	// change state
 	g_State = CORE_MAIN;
@@ -168,7 +165,7 @@ void UpdateUser() {
 		DynamicCoordinate coord;
 		coord.x = (int64_t)(m_coords.x / CELLSIZE);
 		coord.y = (int64_t)(m_coords.y / CELLSIZE);
-		coord.value = 'R';
+		coord.value = g_ID;
 		if (!ARRLIST_DynamicCoordinate_has(&g_QueuedCells, coord)) 
 			ARRLIST_DynamicCoordinate_add(&g_QueuedCells, coord);
 	}
@@ -211,7 +208,7 @@ void UpdateCells() {
 				if (cell_id != '\0') {
 					if (num_neighbors < 2 || num_neighbors > 3) g_Map.data[x][y] += DEATH_MARK;
 				} else {
-					if (num_neighbors == 3) g_Map.data[x][y] = 'r';
+					if (num_neighbors == 3) g_Map.data[x][y] = g_ID + ('a' - 'A');
 				}
 			}
 		}
@@ -297,7 +294,6 @@ void UpdateServer() {
 		char packet_type;
 		char* client_data = GrabClientUpdate(&packet_type, &datasize);
 		if (client_data != NULL) {
-			LOG_INFO("Found client data!");
 			switch (packet_type) {
 				case 'q':
 					DynamicCoordinate* coords = (DynamicCoordinate*)client_data;

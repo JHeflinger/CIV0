@@ -9,7 +9,7 @@ typedef enum {
 } NetworkType;
 
 void StartServer();
-void ConnectClient();
+char ConnectClient();
 void DistributeData(EZN_BYTE* data, size_t size);
 void GrabData(EZN_BYTE* data, size_t size, int* found_data);
 void SendPacket(char packet_header, EZN_BYTE* data, size_t size);

@@ -15,8 +15,9 @@ void StartServer() {
 	EZN_CREATE_THREAD(g_ServerAcceptThread, ServerAcceptBehavior, NULL);
 }
 
-void ConnectClient() {
+char ConnectClient() {
 	if (ezn_connect_client(&g_Client, RegisterServer) == EZN_ERROR) LOG_FATAL("Unable to connect client service");
+	return 'R';
 }
 
 void DistributeData(EZN_BYTE* data, size_t size) {
