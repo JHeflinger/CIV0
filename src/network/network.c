@@ -1,6 +1,7 @@
 #include "network.h"
 #include "core/logger.h"
 #include "data/gconfig.h"
+#include "network/teams.h"
 #include "utils/datastructs.h"
 
 ezn_Server         g_Server = { 0 }; // the server that is being hosted
@@ -17,7 +18,7 @@ void StartServer() {
 
 char ConnectClient() {
 	if (ezn_connect_client(&g_Client, RegisterServer) == EZN_ERROR) LOG_FATAL("Unable to connect client service");
-	return 'R';
+	return GetRotatingID();
 }
 
 void DistributeData(EZN_BYTE* data, size_t size) {

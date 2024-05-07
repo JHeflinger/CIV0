@@ -29,6 +29,6 @@ void UpdateCoreCamera();
 void UpdateServer();
 void InitializeCoreScene();
 void CleanCoreScene();
-void CalculateSurroundings(int64_t x, int64_t y, char* result, size_t* count);
+void CalculateSurroundings(int64_t x, int64_t y, char* result, int* count);
 
 #endif

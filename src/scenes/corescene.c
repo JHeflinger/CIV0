@@ -7,6 +7,7 @@
 #include "data/baked.h"
 #include "data/gconfig.h"
 #include "data/cellmap.h"
+#include "network/teams.h"
 #include "raylib.h"
 #include <math.h>
 
@@ -44,17 +45,7 @@ void DrawCells() {
 			cell_id = g_Map.data[x][y];
 			if (cell_id != '\0') {
 				Rectangle rect = { (float)(g_Map.x + (int64_t)x) * CELLSIZE, (float)(g_Map.y + (int64_t)y) * CELLSIZE, CELLSIZE, CELLSIZE };
-				switch (cell_id) {
-					case 'R':
-						DrawRectangleRec(rect, RED);
-						break;
-					case 'A':
-						DrawRectangleRec(rect, BLUE);
-						break;
-					default:
-						LOG_FATAL("Unknown cell detected - unable to handle \'%c\'", cell_id);
-						break;
-				}
+				DrawRectangleRec(rect, GetIDColor(cell_id));
 			}
 		}
 	}
