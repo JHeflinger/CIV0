@@ -58,8 +58,9 @@ void DrawCells() {
 }
 
 void DrawArtifacts() {
-	// draw grid
+	// blueprint mode
 	if (g_InteractionState == FREE_PLAN) {
+		// draw grid
 		int gridsize = 25;
 		int origin_x = g_Camera.target.x / CELLSIZE;
 		int origin_y = g_Camera.target.y / CELLSIZE;
@@ -70,6 +71,15 @@ void DrawArtifacts() {
 			DrawLine((origin_x + -1*limiter)*CELLSIZE, (origin_y + i)*CELLSIZE, (origin_x + limiter)*CELLSIZE, (origin_y + i)*CELLSIZE, LIGHTGRAY);
 			DrawLine((origin_x + -1*limiter)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, (origin_x + limiter)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, LIGHTGRAY);
 		}
+
+		// draw cell 2 queue 
+		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
+		m_coords.x = CELLSIZE * ((int)(m_coords.x / CELLSIZE));
+		m_coords.y = CELLSIZE * ((int)(m_coords.y / CELLSIZE));
+		if (m_coords.y < 0) m_coords.y -= CELLSIZE;
+		if (m_coords.x < 0) m_coords.x -= CELLSIZE;
+		Rectangle rec = { m_coords.x, m_coords.y, CELLSIZE, CELLSIZE };
+		DrawRectangleRec(rec, YELLOW);
 	}
 }
 
@@ -153,6 +163,8 @@ void UpdateUser() {
 	// add queued cells
 	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && g_InteractionState == FREE_PLAN) {
 		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
+		if (m_coords.y < 0) m_coords.y -= CELLSIZE;
+		if (m_coords.x < 0) m_coords.x -= CELLSIZE;
 		DynamicCoordinate coord;
 		coord.x = (int64_t)(m_coords.x / CELLSIZE);
 		coord.y = (int64_t)(m_coords.y / CELLSIZE);
