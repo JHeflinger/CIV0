@@ -132,11 +132,10 @@ void InitializeCoreScene() {
 	AddCell(&g_Map, 0, 100, g_ID);
 	AddCell(&g_Map, 100, 0, g_ID);
 	AddCell(&g_Map, -100, 0, g_ID);
-	AddCell(&g_Map, 0, 1, g_ID);
-	AddCell(&g_Map, 1, 2, g_ID);
-	AddCell(&g_Map, 2, 2, g_ID);
-	AddCell(&g_Map, 2, 0, g_ID);
-	AddCell(&g_Map, 2, 1, g_ID);
+	RemoveCell(&g_Map, 0, -100);
+	RemoveCell(&g_Map, 0, 100);
+	RemoveCell(&g_Map, 100, 0);
+	RemoveCell(&g_Map, -100, 0);
 
 	// change state
 	g_State = CORE_MAIN;
@@ -188,7 +187,11 @@ void UpdateUser() {
 	}
 
 	// switch planning states
-	if (IsKeyReleased(KEY_P)) g_InteractionState = g_InteractionState == FREE_CAMERA ? FREE_PLAN : FREE_CAMERA;
+	if (IsKeyReleased(KEY_P)) {
+		if (g_InteractionState == FREE_PLAN) 
+			ARRLIST_DynamicCoordinate_clear(&g_QueuedCells);
+		g_InteractionState = g_InteractionState == FREE_CAMERA ? FREE_PLAN : FREE_CAMERA;
+	}
 }
 
 void UpdateCells() {
@@ -199,16 +202,17 @@ void UpdateCells() {
 		else time = 0.0f;
 		uint8_t cell_id;
 		ARRLIST_Coordinate changed = { 0 };
-		for (size_t y = 0; y < g_Map.height; y++) {
-			for (size_t x = 0; x < g_Map.width; x++) {
-				cell_id = g_Map.data[x][y];
+		for (int64_t y = 0 - NO_BOUNDS; y < g_Map.height + NO_BOUNDS; y++) {
+			for (int64_t x = 0 - NO_BOUNDS; x < g_Map.width + NO_BOUNDS; x++) {
+				int out_bounds = x < 0 || y < 0 || x >= (int64_t)g_Map.width || y >= (int64_t)g_Map.height;
+				cell_id = out_bounds ? '\0' : g_Map.data[(size_t)x][(size_t)y];
 				int num_neighbors = 0;
 				char dominator;
-				CalculateSurroundings((int64_t)x + g_Map.x, (int64_t)y + g_Map.y, &dominator, &num_neighbors);
+				CalculateSurroundings(x + g_Map.x, y + g_Map.y, &dominator, &num_neighbors);
 				if (cell_id != '\0') {
-					if (num_neighbors < 2 || num_neighbors > 3) g_Map.data[x][y] += DEATH_MARK;
+					if (num_neighbors < 2 || num_neighbors > 3) g_Map.data[(size_t)x][(size_t)y] += DEATH_MARK;
 				} else {
-					if (num_neighbors == 3) g_Map.data[x][y] = dominator + ('a' - 'A');
+					if (num_neighbors == 3) AddCell(&g_Map, x + g_Map.x, y + g_Map.y, dominator + ('a' - 'A'));
 				}
 			}
 		}
