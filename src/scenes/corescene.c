@@ -200,15 +200,12 @@ void UpdateCells() {
 			for (size_t x = 0; x < g_Map.width; x++) {
 				cell_id = g_Map.data[x][y];
 				int num_neighbors = 0;
-				for (int i = -1; i < 2; i++)
-					for (int j = -1; j < 2; j++)
-						if ((i != 0 || j != 0) && (x + i) >= 0 && (y + j) >= 0 && (x + i) < g_Map.width && (y + j) < g_Map.height)
-							if (g_Map.data[x + i][y + j] >= 'A' + DEATH_MARK || (g_Map.data[x + i][y + j] <= 'Z' && g_Map.data[x + i][y + j] >= 'A'))
-								num_neighbors++;
+				char dominator;
+				CalculateSurroundings((int64_t)x + g_Map.x, (int64_t)y + g_Map.y, &dominator, &num_neighbors);
 				if (cell_id != '\0') {
 					if (num_neighbors < 2 || num_neighbors > 3) g_Map.data[x][y] += DEATH_MARK;
 				} else {
-					if (num_neighbors == 3) g_Map.data[x][y] = g_ID + ('a' - 'A');
+					if (num_neighbors == 3) g_Map.data[x][y] = dominator + ('a' - 'A');
 				}
 			}
 		}
@@ -314,17 +311,34 @@ void CleanCoreScene() {
 
 }
 
-void CalculateSurroundings(int64_t x, int64_t y, char* result, size_t* count) {
+void CalculateSurroundings(int64_t x, int64_t y, char* result, int* count) {
 	char ids[9];
 	int vals[9];
+	int total = 0;
+	memset(ids, '\0', 9);
+	memset(vals, 0, sizeof(int)*9);
 	for (int r = -1; r < 2; r++) {
 		for (int c = -1; c < 2; c++) {
+			if (r == 0 && c == 0) continue;
 			char curr = GetCell(&g_Map, x + c, y + r);
 			if (curr != '\0') {
+				if ((uint8_t)curr >= (uint8_t)'A' + DEATH_MARK) curr -= DEATH_MARK;
+				if (curr >= 'a') continue;
+				total += 1;
 				int found = -1;
 				for (int i = 0; i < 9; i++)
 					if (ids[i] == curr) found = i;
-				if //TODO
+				if (found != -1) {
+					vals[found] += 1;
+				} else {
+					for (int i = 0; i < 9; i++) {
+						if (ids[i] == '\0') {
+							ids[i] = curr;
+							vals[i] = 1;
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -332,6 +346,7 @@ void CalculateSurroundings(int64_t x, int64_t y, char* result, size_t* count) {
 	for (int i = 0; i < 9; i++)
 		if (vals[i] > vals[max])
 			max = i;
-	return ids[max];
+	*result = ids[max];
+	*count = vals[max];
 }
 

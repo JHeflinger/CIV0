@@ -73,5 +73,7 @@ void ClearCells(Cellmap* map) {
 }
 
 char GetCell(Cellmap* map, int64_t x, int64_t y) {
+    if ((size_t)(x - map->x) < 0 || (size_t)(x - map->x) >= map->width) return '\0';
+    if ((size_t)(y - map->y) < 0 || (size_t)(y - map->y) >= map->height) return '\0';
     return map->data[(size_t)(x - map->x)][(size_t)(y - map->y)];
 }
