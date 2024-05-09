@@ -22,7 +22,7 @@ char                         g_ID                 = 'A';
 void DrawCoreScene() {
     BeginDrawing();
 
-    ClearBackground(DARKGRAY);
+    ClearBackground(CLITERAL(Color){ 40, 40, 40, 255 });
     
 	BeginMode2D(g_Camera);
 
@@ -87,11 +87,28 @@ void DrawUI() {
 	// fps monitor
 	char buffer[1024];
 	sprintf(buffer, "FPS: %d", (int)(1.0f/GetFrameTime()));
-	DrawText(buffer, 10, 10, 18, RAYWHITE);
+	//DrawText(buffer, 10, 10, 18, RAYWHITE);
 
 	//ping monitor
 	sprintf(buffer, "PING: %u", g_Ping);
-	DrawText(buffer, 10, 30, 18, RAYWHITE);
+	//DrawText(buffer, 10, 30, 18, RAYWHITE);
+
+	//helper ui
+	if (g_InteractionState != FREE_PLAN) {
+		sprintf(buffer, "P");
+		DrawRectangle(GetScreenWidth() - 53, 13, 40, 40, DARKGRAY);
+		DrawRectangle(GetScreenWidth() - 50, 10, 40, 40, GRAY);
+		DrawText(buffer, GetScreenWidth() - 40, 18, 28, LIGHTGRAY);
+		sprintf(buffer, "Blueprint mode");
+		DrawText(buffer, GetScreenWidth() - 190, 22, 18, RAYWHITE);
+	} else {
+		sprintf(buffer, "P");
+		DrawRectangle(GetScreenWidth() - 53, 13, 40, 40, DARKGRAY);
+		DrawRectangle(GetScreenWidth() - 50, 10, 40, 40, GRAY);
+		DrawText(buffer, GetScreenWidth() - 40, 18, 28, LIGHTGRAY);
+		sprintf(buffer, "Exit blueprint mode");
+		DrawText(buffer, GetScreenWidth() - 229, 22, 18, RAYWHITE);
+	}
 }
 
 void UpdateCoreScene() {
@@ -202,9 +219,10 @@ void UpdateCells() {
 		else time = 0.0f;
 		uint8_t cell_id;
 		ARRLIST_Coordinate changed = { 0 };
-		for (int64_t y = 0 - NO_BOUNDS; y < g_Map.height + NO_BOUNDS; y++) {
-			for (int64_t x = 0 - NO_BOUNDS; x < g_Map.width + NO_BOUNDS; x++) {
+		for (int64_t y = 0 - NO_BOUNDS; y < (int64_t)g_Map.height + NO_BOUNDS; y++) {
+			for (int64_t x = 0 - NO_BOUNDS; x < (int64_t)g_Map.width + NO_BOUNDS; x++) {
 				int out_bounds = x < 0 || y < 0 || x >= (int64_t)g_Map.width || y >= (int64_t)g_Map.height;
+				if (out_bounds) continue;
 				cell_id = out_bounds ? '\0' : g_Map.data[(size_t)x][(size_t)y];
 				int num_neighbors = 0;
 				char dominator;
@@ -281,6 +299,7 @@ void UpdateCoreCamera() {
 	}
 	g_Camera.target.x += vel.x * speed;
 	g_Camera.target.y += vel.y * speed;
+    g_Camera.offset = (Vector2){ GetScreenWidth()/2.0f, GetScreenHeight()/2.0f };
 	g_Camera.zoom += GetMouseWheelMove() * 0.1f;
 	g_Camera.zoom = g_Camera.zoom < 0.1f ? 0.1f : g_Camera.zoom;
 

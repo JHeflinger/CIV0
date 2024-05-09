@@ -18,7 +18,7 @@ void RunGame() {
 	InitializeNetwork(server_or_client);
 
 	// initialize window
-	SetConfigFlags(FLAG_VSYNC_HINT);
+	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_MAXIMIZED);
     InitWindow(1200, 675, "CARDS");
 
 	// main game loop

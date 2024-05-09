@@ -16,6 +16,9 @@
 #define IOTA 0.0001f
 #define DEATH_MARK 100
 #define CYCLE 0.1f
-#define NO_BOUNDS 0
+#define NO_BOUNDS 1
+
+#define APP_W 800
+#define APP_H 600
 
 #endif
