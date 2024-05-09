@@ -18,6 +18,7 @@ Cellmap                      g_Map                = { 0 };
 ARRLIST_DynamicCoordinate    g_QueuedCells        = { 0 };
 uint32_t                     g_Ping               = -1;
 char                         g_ID                 = 'A';
+uint64_t                     g_AvailableCells     = 100;
 
 void DrawCoreScene() {
     BeginDrawing();
@@ -79,19 +80,22 @@ void DrawArtifacts() {
 		if (m_coords.y < 0) m_coords.y -= CELLSIZE;
 		if (m_coords.x < 0) m_coords.x -= CELLSIZE;
 		Rectangle rec = { m_coords.x, m_coords.y, CELLSIZE, CELLSIZE };
-		DrawRectangleRec(rec, YELLOW);
+		DrawRectangleRec(rec, g_QueuedCells.size < g_AvailableCells ? YELLOW : RED);
 	}
 }
 
 void DrawUI() {
-	// fps monitor
 	char buffer[1024];
-	sprintf(buffer, "FPS: %d", (int)(1.0f/GetFrameTime()));
-	//DrawText(buffer, 10, 10, 18, RAYWHITE);
+	
+	// available cells
+	sprintf(buffer, "AVAILABLE CELLS:");
+	DrawText(buffer, 20, 20, 18, RAYWHITE);
+	sprintf(buffer, "%lu", (unsigned long)g_AvailableCells);
+	DrawText(buffer, 190, 20, 18, g_AvailableCells >= 100 ? GREEN : g_AvailableCells < 10 ? RED : YELLOW);
 
-	//ping monitor
-	sprintf(buffer, "PING: %u", g_Ping);
-	//DrawText(buffer, 10, 30, 18, RAYWHITE);
+	// fps monitor
+	sprintf(buffer, "FPS: %d", (int)(1.0f/GetFrameTime()));
+	DrawText(buffer, 20, 50, 18, RAYWHITE);
 
 	//helper ui
 	if (g_InteractionState != FREE_PLAN) {
@@ -177,7 +181,7 @@ void MainCoreScene() {
 
 void UpdateUser() {
 	// add queued cells
-	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && g_InteractionState == FREE_PLAN) {
+	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && g_InteractionState == FREE_PLAN && g_QueuedCells.size < g_AvailableCells) {
 		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
 		if (m_coords.y < 0) m_coords.y -= CELLSIZE;
 		if (m_coords.x < 0) m_coords.x -= CELLSIZE;
@@ -200,6 +204,7 @@ void UpdateUser() {
 		} else {
 			LOG_FATAL("Unknown network type detected");
 		}
+		g_AvailableCells -= g_QueuedCells.size;
 		ARRLIST_DynamicCoordinate_clear(&g_QueuedCells);
 	}
 
