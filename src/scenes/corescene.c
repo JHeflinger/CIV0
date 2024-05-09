@@ -19,6 +19,7 @@ ARRLIST_DynamicCoordinate    g_QueuedCells        = { 0 };
 uint32_t                     g_Ping               = -1;
 char                         g_ID                 = 'A';
 uint64_t                     g_AvailableCells     = 100;
+uint64_t                     g_CapturedCells[26];
 
 void DrawCoreScene() {
     BeginDrawing();
@@ -218,6 +219,7 @@ void UpdateUser() {
 
 void UpdateCells() {
 	if (GetNetworkType() == SERVER) {
+		memset(g_CapturedCells, 0, sizeof(uint64_t)*26);
 		static float time;
 		time += GetFrameTime();
 		if (time < CYCLE) return;
@@ -233,7 +235,13 @@ void UpdateCells() {
 				char dominator;
 				CalculateSurroundings(x + g_Map.x, y + g_Map.y, &dominator, &num_neighbors);
 				if (cell_id != '\0') {
-					if (num_neighbors < 2 || num_neighbors > 3) g_Map.data[(size_t)x][(size_t)y] += DEATH_MARK;
+					if (num_neighbors < 2 || num_neighbors > 3) {
+						g_Map.data[(size_t)x][(size_t)y] += DEATH_MARK;
+						if (num_neighbors > 3) {
+							size_t ind = (int)dominator - 'A';
+							g_CapturedCells[ind] += 1;
+						}
+					}
 				} else {
 					if (num_neighbors == 3) AddCell(&g_Map, x + g_Map.x, y + g_Map.y, dominator + ('a' - 'A'));
 				}
@@ -269,7 +277,7 @@ void UpdateCells() {
 			}
 		}
 	} else {
-		LOG_FATAL("Unknown getwork type");
+		LOG_FATAL("Unknown network type");
 	}
 }
 
