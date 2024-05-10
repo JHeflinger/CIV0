@@ -18,9 +18,10 @@ Cellmap                      g_Map                = { 0 };
 ARRLIST_DynamicCoordinate    g_QueuedCells        = { 0 };
 uint32_t                     g_Ping               = -1;
 char                         g_ID                 = 'A';
-uint64_t                     g_AvailableCells     = 100;
+uint64_t                     g_AvailableCells     = 10;
 uint64_t                     g_CapturedCells[26];
 uint64_t                     g_Leaderboard[26];
+CoreGameState                g_GameState          = GAME_OK;
 
 void DrawCoreScene() {
     BeginDrawing();
@@ -36,6 +37,8 @@ void DrawCoreScene() {
 	EndMode2D();
 
 	DrawUI();
+
+	DrawOverlay();
 
     EndDrawing();
 }
@@ -132,9 +135,20 @@ void DrawUI() {
 		}
 		if (maxval == 0) break;
 		DrawRectangle(20, 50 + (i * 22), 15, 15, GetIDColor(max + 'A'));
+		if (max + 'A' == (size_t)g_ID)
+			DrawRectangle(10, 50 + (i * 22), 5, 15, RAYWHITE);
 		sprintf(buffer, i == 0 ? "%dst place - %lu" : (i == 1 ? "%dnd place - %lu" : (i == 2 ? "%drd place - %lu" : "%dth place - %lu")), (int)(i + 1), maxval);
 		DrawText(buffer, 45, 50 + (i * 22), 18, i == 0 ? GOLD : (i == 1 ? CLITERAL(Color){ 204, 213, 217, 255 } : (i == 2 ? CLITERAL(Color){ 173, 115, 7, 255 } : RAYWHITE)));
 		g_Leaderboard[max] = 0;
+	}
+}
+
+void DrawOverlay() {
+	char buffer[1024];
+	if (g_GameState == GAME_OVER) {
+		DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), CLITERAL(Color){ 0, 0, 0, 150 });
+		sprintf(buffer, "GAME OVER");
+		DrawText(buffer, (GetScreenWidth() / 2) - 255 + 10, (GetScreenHeight() / 2) - 37, 80, RAYWHITE);
 	}
 }
 
@@ -203,6 +217,9 @@ void MainCoreScene() {
 
 	// update leaderboard
 	UpdateLeaderboard();
+
+	// update state 
+	UpdateState();
 }
 
 void UpdateUser() {
@@ -398,6 +415,13 @@ void UpdateLeaderboard() {
 			size_t ind = (size_t)id - 'A';
 			g_Leaderboard[ind]++;
 		}
+	}
+}
+
+void UpdateState() {
+	uint64_t active_cells = g_Leaderboard[(size_t)(g_ID - 'A')];
+	if (active_cells == 0 && g_AvailableCells == 0) {
+		g_GameState = GAME_OVER;
 	}
 }
 

@@ -13,6 +13,11 @@ typedef enum {
 } CoreSceneState;
 
 typedef enum {
+	GAME_OK,
+	GAME_OVER,
+} CoreGameState;
+
+typedef enum {
 	FREE_CAMERA,
 	FREE_PLAN,
 } InteractionState;
@@ -21,6 +26,7 @@ void DrawCoreScene();
 void DrawCells();
 void DrawArtifacts();
 void DrawUI();
+void DrawOverlay();
 void UpdateCoreScene();
 void MainCoreScene();
 void UpdateCells();
@@ -28,6 +34,7 @@ void UpdateUser();
 void UpdateCoreCamera();
 void UpdateServer();
 void UpdateLeaderboard();
+void UpdateState();
 void InitializeCoreScene();
 void CleanCoreScene();
 void CalculateSurroundings(int64_t x, int64_t y, char* result, int* count);
