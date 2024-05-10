@@ -36,6 +36,11 @@ void GrabData(EZN_BYTE* data, size_t size, int* found_data) {
 	*found_data = grabbed > 0 && grabbed <= size ? TRUE : FALSE;
 }
 
+void GrabValueArray(EZN_BYTE* data) {
+	size_t grabbed = 0;
+	if (ezn_recieve(g_ServerConnection, data, 26*sizeof(uint64_t), &grabbed) == EZN_ERROR || grabbed != 26*sizeof(uint64_t)) LOG_WARN("Unable to properly grab network value array");
+}
+
 void SendPacket(char packet_header, EZN_BYTE* data, size_t size) {
 	size_t sent = 0;
 	uint32_t packsize = size;

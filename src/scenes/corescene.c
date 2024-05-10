@@ -20,6 +20,7 @@ uint32_t                     g_Ping               = -1;
 char                         g_ID                 = 'A';
 uint64_t                     g_AvailableCells     = 100;
 uint64_t                     g_CapturedCells[26];
+uint64_t                     g_Leaderboard[26];
 
 void DrawCoreScene() {
     BeginDrawing();
@@ -76,10 +77,10 @@ void DrawArtifacts() {
 
 		// draw cell 2 queue 
 		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
-		m_coords.x = CELLSIZE * ((int)(m_coords.x / CELLSIZE));
-		m_coords.y = CELLSIZE * ((int)(m_coords.y / CELLSIZE));
 		if (m_coords.y < 0) m_coords.y -= CELLSIZE;
 		if (m_coords.x < 0) m_coords.x -= CELLSIZE;
+		m_coords.x = CELLSIZE * ((int)(m_coords.x / CELLSIZE));
+		m_coords.y = CELLSIZE * ((int)(m_coords.y / CELLSIZE));
 		Rectangle rec = { m_coords.x, m_coords.y, CELLSIZE, CELLSIZE };
 		DrawRectangleRec(rec, g_QueuedCells.size < g_AvailableCells ? YELLOW : RED);
 	}
@@ -96,7 +97,7 @@ void DrawUI() {
 
 	// fps monitor
 	sprintf(buffer, "FPS: %d", (int)(1.0f/GetFrameTime()));
-	DrawText(buffer, 20, 50, 18, RAYWHITE);
+	//DrawText(buffer, 20, 50, 18, RAYWHITE);
 
 	//helper ui
 	if (g_InteractionState != FREE_PLAN) {
@@ -113,6 +114,27 @@ void DrawUI() {
 		DrawText(buffer, GetScreenWidth() - 40, 18, 28, LIGHTGRAY);
 		sprintf(buffer, "Exit blueprint mode");
 		DrawText(buffer, GetScreenWidth() - 229, 22, 18, RAYWHITE);
+	}
+
+	// show team
+	DrawRectangle(20, GetScreenHeight() - 70, 50, 50, WHITE);
+	DrawRectangle(25, GetScreenHeight() - 65, 40, 40, GetIDColor(g_ID));
+
+	// leaderboard
+	for (size_t i = 0; i < 26; i++) {
+		size_t max = 0;
+		uint64_t maxval = 0;
+		for (size_t j = 0; j < 26; j++) {
+			if (g_Leaderboard[j] > maxval) {
+				max = j;
+				maxval = g_Leaderboard[j];
+			}
+		}
+		if (maxval == 0) break;
+		DrawRectangle(20, 50 + (i * 22), 15, 15, GetIDColor(max + 'A'));
+		sprintf(buffer, i == 0 ? "%dst place - %lu" : (i == 1 ? "%dnd place - %lu" : (i == 2 ? "%drd place - %lu" : "%dth place - %lu")), (int)(i + 1), maxval);
+		DrawText(buffer, 45, 50 + (i * 22), 18, i == 0 ? GOLD : (i == 1 ? CLITERAL(Color){ 204, 213, 217, 255 } : (i == 2 ? CLITERAL(Color){ 173, 115, 7, 255 } : RAYWHITE)));
+		g_Leaderboard[max] = 0;
 	}
 }
 
@@ -178,6 +200,9 @@ void MainCoreScene() {
 	
 	// update server (if possible)
 	UpdateServer();
+
+	// update leaderboard
+	UpdateLeaderboard();
 }
 
 void UpdateUser() {
@@ -196,16 +221,23 @@ void UpdateUser() {
 
 	// send queued cells
 	if (IsKeyReleased(KEY_ENTER) && g_InteractionState == FREE_PLAN) {
-		if (GetNetworkType() == SERVER) {
-			for (size_t i = 0; i < g_QueuedCells.size; i++)
-				if (GetCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y) == '\0')
-					AddCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y, g_QueuedCells.data[i].value);
-		} else if (GetNetworkType() == CLIENT) {
-			SendPacket('q', (EZN_BYTE*)g_QueuedCells.data, g_QueuedCells.size * sizeof(DynamicCoordinate));
-		} else {
-			LOG_FATAL("Unknown network type detected");
-		}
+		for (size_t i = 0; i < g_QueuedCells.size; i++)
+			if (GetCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y) == '\0')
+				AddCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y, g_QueuedCells.data[i].value);
+		if (GetNetworkType() == CLIENT) SendPacket('q', (EZN_BYTE*)g_QueuedCells.data, g_QueuedCells.size * sizeof(DynamicCoordinate));
 		g_AvailableCells -= g_QueuedCells.size;
+		if (GetNetworkType() == SERVER) {
+			ARRLIST_Coordinate changed = { 0 };
+			for (size_t i = 0; i < g_QueuedCells.size; i++) {
+				Coordinate coord;
+				coord.x = (size_t)(g_QueuedCells.data[i].x - g_Map.x);
+				coord.y = (size_t)(g_QueuedCells.data[i].y - g_Map.y);
+				coord.value = g_QueuedCells.data[i].value;
+				ARRLIST_Coordinate_add(&changed, coord);
+			}
+			DistributeData((EZN_BYTE*)changed.data, changed.size * sizeof(Coordinate));
+			ARRLIST_Coordinate_clear(&changed);
+		}
 		ARRLIST_DynamicCoordinate_clear(&g_QueuedCells);
 	}
 
@@ -236,11 +268,11 @@ void UpdateCells() {
 				CalculateSurroundings(x + g_Map.x, y + g_Map.y, &dominator, &num_neighbors);
 				if (cell_id != '\0') {
 					if (num_neighbors < 2 || num_neighbors > 3) {
-						g_Map.data[(size_t)x][(size_t)y] += DEATH_MARK;
-						if (num_neighbors > 3) {
+						if (num_neighbors > 3 && g_Map.data[(size_t)x][(size_t)y] != (uint8_t)dominator) {
 							size_t ind = (int)dominator - 'A';
 							g_CapturedCells[ind] += 1;
 						}
+						g_Map.data[(size_t)x][(size_t)y] += DEATH_MARK;
 					}
 				} else {
 					if (num_neighbors == 3) AddCell(&g_Map, x + g_Map.x, y + g_Map.y, dominator + ('a' - 'A'));
@@ -265,7 +297,14 @@ void UpdateCells() {
 				}
 			}
 		}
+		Coordinate coord;
+		coord.x = coord.y = 0;
+		coord.value = '~';
+		EZN_BYTE* added_cells_bytes = calloc(1, 26*sizeof(uint64_t) + sizeof(Coordinate));
+		memcpy(added_cells_bytes, &coord, sizeof(Coordinate));
+		memcpy(added_cells_bytes + sizeof(Coordinate), g_CapturedCells, 26*sizeof(uint64_t));
 		DistributeData((EZN_BYTE*)changed.data, changed.size * sizeof(Coordinate));
+		DistributeData(added_cells_bytes, 26*sizeof(uint64_t) + sizeof(Coordinate));
 		ARRLIST_Coordinate_clear(&changed);
 	} else if (GetNetworkType() == CLIENT) {
 		int found_data = TRUE;
@@ -273,6 +312,11 @@ void UpdateCells() {
 		while (found_data) {
 			GrabData((EZN_BYTE*)&coord, sizeof(Coordinate), &found_data);
 			if (found_data) {
+				if (coord.value == '~') {
+					GrabValueArray((EZN_BYTE*)g_CapturedCells);
+					size_t ind = (size_t)g_ID - 'A';
+					g_AvailableCells += g_CapturedCells[ind];
+				}
 				g_Map.data[coord.x][coord.y] = coord.value;
 			}
 		}
@@ -342,6 +386,17 @@ void UpdateServer() {
 					LOG_WARN("Unknown packet type recieved, unable to properly process client data of type %d - %c", (int)packet_type, packet_type);
 			}
 			free(client_data);
+		}
+	}
+}
+
+void UpdateLeaderboard() {
+	memset(g_Leaderboard, 0, 26*sizeof(uint64_t));
+	for (size_t y = 0; y < g_Map.height; y++) {
+		for (size_t x = 0; x < g_Map.width; x++) {
+			char id = g_Map.data[x][y];
+			size_t ind = (size_t)id - 'A';
+			g_Leaderboard[ind]++;
 		}
 	}
 }

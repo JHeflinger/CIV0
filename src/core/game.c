@@ -19,7 +19,7 @@ void RunGame() {
 
 	// initialize window
 	SetConfigFlags(FLAG_VSYNC_HINT);// | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_MAXIMIZED);
-    InitWindow(1200, 675, "CARDS");
+    InitWindow(1400, 900, "CARDS");
 
 	// main game loop
     while (!WindowShouldClose())

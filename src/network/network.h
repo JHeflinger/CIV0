@@ -12,6 +12,7 @@ void StartServer();
 char ConnectClient();
 void DistributeData(EZN_BYTE* data, size_t size);
 void GrabData(EZN_BYTE* data, size_t size, int* found_data);
+void GrabValueArray(EZN_BYTE* data);
 void SendPacket(char packet_header, EZN_BYTE* data, size_t size);
 char* GrabClientUpdate(char* packet_type, size_t* datasize);
 int InitializeNetwork(NetworkType type);
