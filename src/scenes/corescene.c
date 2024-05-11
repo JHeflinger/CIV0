@@ -18,7 +18,7 @@ Cellmap                      g_Map                = { 0 };
 ARRLIST_DynamicCoordinate    g_QueuedCells        = { 0 };
 uint32_t                     g_Ping               = -1;
 char                         g_ID                 = 'A';
-uint64_t                     g_AvailableCells     = 10;
+uint64_t                     g_AvailableCells     = 100;
 uint64_t                     g_CapturedCells[26];
 uint64_t                     g_Leaderboard[26];
 CoreGameState                g_GameState          = GAME_OK;
@@ -148,7 +148,15 @@ void DrawOverlay() {
 	if (g_GameState == GAME_OVER) {
 		DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), CLITERAL(Color){ 0, 0, 0, 150 });
 		sprintf(buffer, "GAME OVER");
-		DrawText(buffer, (GetScreenWidth() / 2) - 255 + 10, (GetScreenHeight() / 2) - 37, 80, RAYWHITE);
+		DrawText(buffer, (GetScreenWidth() / 2) - 255 + 10, (GetScreenHeight() / 2) - 37 - 80, 80, RAYWHITE);
+		DrawRectangle((GetScreenWidth() / 2) - 115, (GetScreenHeight() / 2) + 70 - 80, 250, 50, DARKGRAY);
+		DrawRectangle((GetScreenWidth() / 2) - 125, (GetScreenHeight() / 2) + 60 - 80, 250, 50, GRAY);
+		sprintf(buffer, "HOME");
+		DrawText(buffer, (GetScreenWidth() / 2) - 45, (GetScreenHeight() / 2) + 70 - 80, 30, RAYWHITE);
+		DrawRectangle((GetScreenWidth() / 2) - 115, (GetScreenHeight() / 2) + 150 - 80, 250, 50, DARKGRAY);
+		DrawRectangle((GetScreenWidth() / 2) - 125, (GetScreenHeight() / 2) + 140 - 80, 250, 50, GRAY);
+		sprintf(buffer, "RE-JOIN");
+		DrawText(buffer, (GetScreenWidth() / 2) - 60, (GetScreenHeight() / 2) + 150 - 80, 30, RAYWHITE);
 	}
 }
 
@@ -209,14 +217,14 @@ void MainCoreScene() {
 	// update cells
 	UpdateCells();
 
+	// update leaderboard
+	UpdateLeaderboard();
+
 	// update user input
 	UpdateUser();
 	
 	// update server (if possible)
 	UpdateServer();
-
-	// update leaderboard
-	UpdateLeaderboard();
 
 	// update state 
 	UpdateState();
@@ -263,6 +271,30 @@ void UpdateUser() {
 		if (g_InteractionState == FREE_PLAN) 
 			ARRLIST_DynamicCoordinate_clear(&g_QueuedCells);
 		g_InteractionState = g_InteractionState == FREE_CAMERA ? FREE_PLAN : FREE_CAMERA;
+	}
+
+	if (g_GameState == GAME_OVER) {
+		Vector2 mouse_coords = GetMousePosition();
+		if (mouse_coords.x > (GetScreenWidth() / 2) - 125 && 
+			mouse_coords.x < (GetScreenWidth() / 2) - 125 + 250 &&
+			mouse_coords.y > (GetScreenHeight() / 2) + 60 - 80 &&
+			mouse_coords.y < (GetScreenHeight() / 2) + 60 - 80 + 50) {
+			// home button
+		} else if (mouse_coords.x > (GetScreenWidth() / 2) - 125 && 
+			mouse_coords.x < (GetScreenWidth() / 2) - 125 + 250 &&
+			mouse_coords.y > (GetScreenHeight() / 2) + 140 - 80 &&
+			mouse_coords.y < (GetScreenHeight() / 2) + 140 - 80 + 50 &&
+			IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+			g_GameState = GAME_OK;
+			g_AvailableCells = 100;
+			g_ID = 'A';
+			for (size_t i = 0; i < 26; i++) {
+				if (g_Leaderboard[i] == 0) {
+					g_ID += i;
+					break;
+				}
+			}
+		}
 	}
 }
 
