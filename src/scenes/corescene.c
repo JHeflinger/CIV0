@@ -22,6 +22,8 @@ uint64_t                     g_AvailableCells     = 100;
 uint64_t                     g_CapturedCells[26];
 uint64_t                     g_Leaderboard[26];
 CoreGameState                g_GameState          = GAME_OK;
+int                          g_BoardWidth         = 200;
+int                          g_BoardHeight        = 100;
 
 void DrawCoreScene() {
     BeginDrawing();
@@ -87,6 +89,13 @@ void DrawArtifacts() {
 		Rectangle rec = { m_coords.x, m_coords.y, CELLSIZE, CELLSIZE };
 		DrawRectangleRec(rec, g_QueuedCells.size < g_AvailableCells ? YELLOW : RED);
 	}
+
+	// draw map bounds
+	float thickness = 10.0f;
+	DrawLineEx(CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){(CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, thickness, RAYWHITE);
+	DrawLineEx(CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), (CELLSIZE*g_BoardHeight/2)}, thickness, RAYWHITE);
+	DrawLineEx(CLITERAL(Vector2){(CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){(CELLSIZE*g_BoardWidth/2), (CELLSIZE*g_BoardHeight/2)}, thickness, RAYWHITE);
+	DrawLineEx(CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){(CELLSIZE*g_BoardWidth/2), (CELLSIZE*g_BoardHeight/2)}, thickness, RAYWHITE);
 }
 
 void DrawUI() {
@@ -194,14 +203,14 @@ void InitializeCoreScene() {
     g_Camera.zoom = 1.0f;
 
 	// erm, what!
-	AddCell(&g_Map, 0, -100, g_ID);
-	AddCell(&g_Map, 0, 100, g_ID);
-	AddCell(&g_Map, 100, 0, g_ID);
-	AddCell(&g_Map, -100, 0, g_ID);
-	RemoveCell(&g_Map, 0, -100);
-	RemoveCell(&g_Map, 0, 100);
-	RemoveCell(&g_Map, 100, 0);
-	RemoveCell(&g_Map, -100, 0);
+	AddCell(&g_Map, 0, -1 * (g_BoardHeight / 2), g_ID);
+	AddCell(&g_Map, 0, (g_BoardHeight / 2), g_ID);
+	AddCell(&g_Map, -1 * (g_BoardWidth / 2), 0, g_ID);
+	AddCell(&g_Map, (g_BoardWidth / 2), 0, g_ID);
+	RemoveCell(&g_Map, 0, -1 * (g_BoardHeight / 2));
+	RemoveCell(&g_Map, 0, (g_BoardHeight / 2));
+	RemoveCell(&g_Map, -1 * (g_BoardWidth / 2), 0);
+	RemoveCell(&g_Map, (g_BoardWidth / 2), 0);
 
 	// change state
 	g_State = CORE_MAIN;
@@ -365,8 +374,9 @@ void UpdateCells() {
 					GrabValueArray((EZN_BYTE*)g_CapturedCells);
 					size_t ind = (size_t)g_ID - 'A';
 					g_AvailableCells += g_CapturedCells[ind];
+				} else {
+					g_Map.data[coord.x][coord.y] = coord.value;
 				}
-				g_Map.data[coord.x][coord.y] = coord.value;
 			}
 		}
 	} else {

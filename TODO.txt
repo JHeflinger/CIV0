@@ -3,7 +3,6 @@ MINOR:
 MEDIUM:
 
 MAJOR:
-    - implement game over / restart
     - add configurable bounds and infinite bounds as in cells will loop back to the other side upon reaching an edge
     - set up remove planned cells during planning 
     - clean and debug stuff - maybe make ui colored cells with a lowered alpha  
@@ -11,3 +10,4 @@ MAJOR:
 
 COMPLETED:
     - set up so players start out with like 100 cells, and implement the leaderboard
+    - implement game over / restart
