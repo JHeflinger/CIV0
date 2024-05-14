@@ -22,7 +22,7 @@ uint64_t                     g_AvailableCells     = 100;
 uint64_t                     g_CapturedCells[26];
 uint64_t                     g_Leaderboard[26];
 CoreGameState                g_GameState          = GAME_OK;
-int                          g_BoardWidth         = 200;
+int                          g_BoardWidth         = 100;
 int                          g_BoardHeight        = 100;
 
 void DrawCoreScene() {
@@ -87,15 +87,20 @@ void DrawArtifacts() {
 		m_coords.x = CELLSIZE * ((int)(m_coords.x / CELLSIZE));
 		m_coords.y = CELLSIZE * ((int)(m_coords.y / CELLSIZE));
 		Rectangle rec = { m_coords.x, m_coords.y, CELLSIZE, CELLSIZE };
-		DrawRectangleRec(rec, g_QueuedCells.size < g_AvailableCells ? YELLOW : RED);
+		DrawRectangleRec(rec, (g_QueuedCells.size < g_AvailableCells) && 
+			(m_coords.x >= (g_BoardWidth * -0.5f * CELLSIZE) && 
+			m_coords.x <= (g_BoardWidth * 0.5f * CELLSIZE) && 
+			m_coords.y >= (g_BoardHeight * -0.5f * CELLSIZE) && 
+			m_coords.y <= (g_BoardHeight * 0.5f * CELLSIZE)
+			) ? YELLOW : RED);
 	}
 
 	// draw map bounds
 	float thickness = 10.0f;
-	DrawLineEx(CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){(CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, thickness, RAYWHITE);
-	DrawLineEx(CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), (CELLSIZE*g_BoardHeight/2)}, thickness, RAYWHITE);
-	DrawLineEx(CLITERAL(Vector2){(CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){(CELLSIZE*g_BoardWidth/2), (CELLSIZE*g_BoardHeight/2)}, thickness, RAYWHITE);
-	DrawLineEx(CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){(CELLSIZE*g_BoardWidth/2), (CELLSIZE*g_BoardHeight/2)}, thickness, RAYWHITE);
+	DrawLineEx(CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){(CELLSIZE*((g_BoardWidth/2)+1)), -1 * (CELLSIZE*g_BoardHeight/2)}, thickness, RAYWHITE);
+	DrawLineEx(CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), -1 * (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), (CELLSIZE*((g_BoardHeight/2)+1))}, thickness, RAYWHITE);
+	DrawLineEx(CLITERAL(Vector2){(CELLSIZE*((g_BoardWidth/2)+1)), -1 * (CELLSIZE*g_BoardHeight/2)}, CLITERAL(Vector2){(CELLSIZE*((g_BoardWidth/2)+1)), (CELLSIZE*((g_BoardHeight/2)+1))}, thickness, RAYWHITE);
+	DrawLineEx(CLITERAL(Vector2){-1 * (CELLSIZE*g_BoardWidth/2), (CELLSIZE*((g_BoardHeight/2)+1))}, CLITERAL(Vector2){(CELLSIZE*((g_BoardWidth/2)+1)), (CELLSIZE*((g_BoardHeight/2)+1))}, thickness, RAYWHITE);
 }
 
 void DrawUI() {
@@ -202,7 +207,8 @@ void InitializeCoreScene() {
     g_Camera.rotation = 0.0f;
     g_Camera.zoom = 1.0f;
 
-	// erm, what!
+	// map setup
+	SetMapBounds(&g_Map, g_BoardWidth/2, g_BoardHeight/2);
 	AddCell(&g_Map, 0, -1 * (g_BoardHeight / 2), g_ID);
 	AddCell(&g_Map, 0, (g_BoardHeight / 2), g_ID);
 	AddCell(&g_Map, -1 * (g_BoardWidth / 2), 0, g_ID);
@@ -241,8 +247,13 @@ void MainCoreScene() {
 
 void UpdateUser() {
 	// add queued cells
-	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && g_InteractionState == FREE_PLAN && g_QueuedCells.size < g_AvailableCells) {
-		Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
+	Vector2 m_coords = GetScreenToWorld2D(GetMousePosition(), g_Camera);
+	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && g_InteractionState == FREE_PLAN && g_QueuedCells.size < g_AvailableCells && 
+		(m_coords.x >= (g_BoardWidth * -0.5f * CELLSIZE) && 
+		m_coords.x <= (g_BoardWidth * 0.5f * CELLSIZE) && 
+		m_coords.y >= (g_BoardHeight * -0.5f * CELLSIZE) && 
+		m_coords.y <= (g_BoardHeight * 0.5f * CELLSIZE)
+		)) {
 		if (m_coords.y < 0) m_coords.y -= CELLSIZE;
 		if (m_coords.x < 0) m_coords.x -= CELLSIZE;
 		DynamicCoordinate coord;
@@ -254,7 +265,7 @@ void UpdateUser() {
 	}
 
 	// send queued cells
-	if (IsKeyReleased(KEY_ENTER) && g_InteractionState == FREE_PLAN) {
+	if (IsKeyReleased(KEY_ENTER) && g_InteractionState == FREE_PLAN && g_QueuedCells.size != 0) {
 		for (size_t i = 0; i < g_QueuedCells.size; i++)
 			if (GetCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y) == '\0')
 				AddCell(&g_Map, g_QueuedCells.data[i].x, g_QueuedCells.data[i].y, g_QueuedCells.data[i].value);
@@ -425,6 +436,11 @@ void UpdateCoreCamera() {
 		g_Camera.target.y -= (currmousepos.y - mousepos_old.y) / g_Camera.zoom;
 	}
 	mousepos_old = currmousepos;
+
+	if (g_Camera.target.x < (-0.5f * CELLSIZE * g_BoardWidth)) g_Camera.target.x = (-0.5f * CELLSIZE * g_BoardWidth);
+	if (g_Camera.target.x > (0.5f * CELLSIZE * g_BoardWidth)) g_Camera.target.x = (0.5f * CELLSIZE * g_BoardWidth);
+	if (g_Camera.target.y < (-0.5f * CELLSIZE * g_BoardHeight)) g_Camera.target.y = (-0.5f * CELLSIZE * g_BoardHeight);
+	if (g_Camera.target.y > (0.5f * CELLSIZE * g_BoardHeight)) g_Camera.target.y = (0.5f * CELLSIZE * g_BoardHeight);
 }
 
 void UpdateServer() {

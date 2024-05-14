@@ -1,10 +1,11 @@
 #include "game.h"
 #include "scenes/corescene.h"
+#include "scenes/startscene.h"
 #include "core/logger.h"
 #include "network/network.h"
 #include "raylib.h"
 
-GameState g_CurrentState = CORE;
+GameState g_CurrentState = TITLE;
 
 // temp
 int server_or_client;
@@ -36,8 +37,8 @@ void ManageScenes() {
 	// manage game scenes
     switch(g_CurrentState) {
         case TITLE:
-			//UpdateStartScene();
-            //DrawStartScene();
+			UpdateStartScene();
+            DrawStartScene();
             break;
         case CORE:
 			UpdateCoreScene();
