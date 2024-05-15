@@ -8,6 +8,7 @@
 #include "data/gconfig.h"
 #include "data/cellmap.h"
 #include "network/teams.h"
+#include "core/game.h"
 #include "raylib.h"
 #include <math.h>
 
@@ -24,6 +25,13 @@ uint64_t                     g_Leaderboard[26];
 CoreGameState                g_GameState          = GAME_OK;
 int                          g_BoardWidth         = 100;
 int                          g_BoardHeight        = 100;
+
+void DrawCellBorder(float x, float y) {
+	DrawLine(x, y, x + CELLSIZE, y, RAYWHITE);
+	DrawLine(x, y, x, y + CELLSIZE, RAYWHITE);
+	DrawLine(x + CELLSIZE, y, x + CELLSIZE, y + CELLSIZE, RAYWHITE);
+	DrawLine(x, y + CELLSIZE, x + CELLSIZE, y + CELLSIZE, RAYWHITE);
+}
 
 void DrawCoreScene() {
     BeginDrawing();
@@ -61,7 +69,8 @@ void DrawCells() {
 	// draw queued cells
 	for (size_t i = 0; i < g_QueuedCells.size; i++) {
 		Rectangle rect = { g_QueuedCells.data[i].x * CELLSIZE, g_QueuedCells.data[i].y * CELLSIZE, CELLSIZE, CELLSIZE };
-		DrawRectangleRec(rect, GREEN);
+		DrawRectangleRec(rect, CLITERAL(Color){ 0, 228, 48, 110 });
+		DrawCellBorder(g_QueuedCells.data[i].x * CELLSIZE, g_QueuedCells.data[i].y * CELLSIZE);
 	}
 }
 
@@ -74,10 +83,10 @@ void DrawArtifacts() {
 		int origin_y = g_Camera.target.y / CELLSIZE;
 		for (int i = 0; i < gridsize; i++) {
 			float limiter = sqrt(abs(((float)gridsize*gridsize) - (i*i)));
-			DrawLine((origin_x + -1*i)*CELLSIZE, (origin_y + -1*limiter)*CELLSIZE, (origin_x + -1*i)*CELLSIZE, (origin_y + limiter)*CELLSIZE, LIGHTGRAY);
-			DrawLine((origin_x + i)*CELLSIZE, (origin_y + -1*limiter)*CELLSIZE, (origin_x + i)*CELLSIZE, (origin_y + limiter)*CELLSIZE, LIGHTGRAY);
-			DrawLine((origin_x + -1*limiter)*CELLSIZE, (origin_y + i)*CELLSIZE, (origin_x + limiter)*CELLSIZE, (origin_y + i)*CELLSIZE, LIGHTGRAY);
-			DrawLine((origin_x + -1*limiter)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, (origin_x + limiter)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, LIGHTGRAY);
+			DrawLine((origin_x + -1*i)*CELLSIZE, (origin_y + -1*limiter)*CELLSIZE, (origin_x + -1*i)*CELLSIZE, (origin_y + limiter)*CELLSIZE, CLITERAL(Color){ 200, 200, 200, 110 });
+			DrawLine((origin_x + i)*CELLSIZE, (origin_y + -1*limiter)*CELLSIZE, (origin_x + i)*CELLSIZE, (origin_y + limiter)*CELLSIZE, CLITERAL(Color){ 200, 200, 200, 110 });
+			DrawLine((origin_x + -1*limiter)*CELLSIZE, (origin_y + i)*CELLSIZE, (origin_x + limiter)*CELLSIZE, (origin_y + i)*CELLSIZE, CLITERAL(Color){ 200, 200, 200, 110 });
+			DrawLine((origin_x + -1*limiter)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, (origin_x + limiter)*CELLSIZE, (origin_y + -1*i)*CELLSIZE, CLITERAL(Color){ 200, 200, 200, 110 });
 		}
 
 		// draw cell 2 queue 
@@ -92,7 +101,8 @@ void DrawArtifacts() {
 			m_coords.x <= (g_BoardWidth * 0.5f * CELLSIZE) && 
 			m_coords.y >= (g_BoardHeight * -0.5f * CELLSIZE) && 
 			m_coords.y <= (g_BoardHeight * 0.5f * CELLSIZE)
-			) ? YELLOW : RED);
+			) ? CLITERAL(Color){ 253, 249, 0, 110 } : CLITERAL(Color){ 230, 41, 55, 110 });
+		DrawCellBorder(m_coords.x, m_coords.y);
 	}
 
 	// draw map bounds
@@ -124,13 +134,39 @@ void DrawUI() {
 		DrawText(buffer, GetScreenWidth() - 40, 18, 28, LIGHTGRAY);
 		sprintf(buffer, "Blueprint mode");
 		DrawText(buffer, GetScreenWidth() - 190, 22, 18, RAYWHITE);
+
+		DrawRectangle(GetScreenWidth() - 52, 75, 30, 46, DARKGRAY);
+		DrawRectangle(GetScreenWidth() - 47, 90, 30, 26, GRAY);
+		DrawRectangle(GetScreenWidth() - 47, 70, 12, 15, GRAY);
+		DrawRectangle(GetScreenWidth() - 30, 70, 12, 15, LIGHTGRAY);
+		DrawText("Move Camera", GetScreenWidth() - 180, 80, 18, RAYWHITE);
 	} else {
-		sprintf(buffer, "P");
 		DrawRectangle(GetScreenWidth() - 53, 13, 40, 40, DARKGRAY);
 		DrawRectangle(GetScreenWidth() - 50, 10, 40, 40, GRAY);
-		DrawText(buffer, GetScreenWidth() - 40, 18, 28, LIGHTGRAY);
-		sprintf(buffer, "Exit blueprint mode");
-		DrawText(buffer, GetScreenWidth() - 229, 22, 18, RAYWHITE);
+		DrawText("P", GetScreenWidth() - 40, 18, 28, LIGHTGRAY);
+		DrawText("Exit blueprint mode", GetScreenWidth() - 229, 22, 18, RAYWHITE);
+		
+		DrawRectangle(GetScreenWidth() - 53, 73, 40, 40, DARKGRAY);
+		DrawRectangle(GetScreenWidth() - 50, 70, 40, 40, GRAY);
+		DrawText("R", GetScreenWidth() - 40, 78, 28, LIGHTGRAY);
+		DrawText("Remove planned cell", GetScreenWidth() - 234, 82, 18, RAYWHITE);
+
+		DrawRectangle(GetScreenWidth() - 52, 135, 30, 46, DARKGRAY);
+		DrawRectangle(GetScreenWidth() - 47, 150, 30, 26, GRAY);
+		DrawRectangle(GetScreenWidth() - 47, 130, 12, 15, GRAY);
+		DrawRectangle(GetScreenWidth() - 30, 130, 12, 15, LIGHTGRAY);
+		DrawText("Move Camera", GetScreenWidth() - 180, 140, 18, RAYWHITE);
+
+		DrawRectangle(GetScreenWidth() - 52, 201, 30, 46, DARKGRAY);
+		DrawRectangle(GetScreenWidth() - 47, 216, 30, 26, GRAY);
+		DrawRectangle(GetScreenWidth() - 47, 196, 12, 15, LIGHTGRAY);
+		DrawRectangle(GetScreenWidth() - 30, 196, 12, 15, GRAY);
+		DrawText("Add cell to plan", GetScreenWidth() - 200, 206, 18, RAYWHITE);
+
+		DrawRectangle(GetScreenWidth() - 95, 271, 80, 40, DARKGRAY);
+		DrawRectangle(GetScreenWidth() - 90, 266, 80, 40, GRAY);
+		DrawText("ENTR", GetScreenWidth() - 80, 276, 22, LIGHTGRAY);
+		DrawText("Submit blueprint", GetScreenWidth() - 240, 279, 18, RAYWHITE);
 	}
 
 	// show team
@@ -262,6 +298,24 @@ void UpdateUser() {
 		coord.value = g_ID;
 		if (!ARRLIST_DynamicCoordinate_has(&g_QueuedCells, coord)) 
 			ARRLIST_DynamicCoordinate_add(&g_QueuedCells, coord);
+	}else if (IsKeyDown(KEY_R) && g_InteractionState == FREE_PLAN && 
+		(m_coords.x >= (g_BoardWidth * -0.5f * CELLSIZE) && 
+		m_coords.x <= (g_BoardWidth * 0.5f * CELLSIZE) && 
+		m_coords.y >= (g_BoardHeight * -0.5f * CELLSIZE) && 
+		m_coords.y <= (g_BoardHeight * 0.5f * CELLSIZE)
+		)) {
+		if (m_coords.y < 0) m_coords.y -= CELLSIZE;
+		if (m_coords.x < 0) m_coords.x -= CELLSIZE;
+		DynamicCoordinate coord;
+		coord.x = (int64_t)(m_coords.x / CELLSIZE);
+		coord.y = (int64_t)(m_coords.y / CELLSIZE);
+		coord.value = g_ID;
+		for (size_t i = 0; i < g_QueuedCells.size; i++) {
+			if (g_QueuedCells.data[i].x == coord.x && g_QueuedCells.data[i].y == coord.y) {
+				ARRLIST_DynamicCoordinate_remove(&g_QueuedCells, i);
+				break;
+			}
+		}
 	}
 
 	// send queued cells
@@ -298,8 +352,10 @@ void UpdateUser() {
 		if (mouse_coords.x > (GetScreenWidth() / 2) - 125 && 
 			mouse_coords.x < (GetScreenWidth() / 2) - 125 + 250 &&
 			mouse_coords.y > (GetScreenHeight() / 2) + 60 - 80 &&
-			mouse_coords.y < (GetScreenHeight() / 2) + 60 - 80 + 50) {
-			// home button
+			mouse_coords.y < (GetScreenHeight() / 2) + 60 - 80 + 50 &&
+			IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+			CleanCoreScene();
+			ChangeScene(TITLE);
 		} else if (mouse_coords.x > (GetScreenWidth() / 2) - 125 && 
 			mouse_coords.x < (GetScreenWidth() / 2) - 125 + 250 &&
 			mouse_coords.y > (GetScreenHeight() / 2) + 140 - 80 &&
@@ -398,6 +454,9 @@ void UpdateCells() {
 					RemoveCell(&g_Map, 0, (g_BoardHeight / 2));
 					RemoveCell(&g_Map, -1 * (g_BoardWidth / 2), 0);
 					RemoveCell(&g_Map, (g_BoardWidth / 2), 0);
+				} else if (coord.value == '#') {
+					g_ID = (char)(coord.x + 'A');
+					LOG_INFO("hey: %c", g_ID);
 				} else {
 					g_Map.data[coord.x][coord.y] = coord.value;
 				}
@@ -497,7 +556,15 @@ void UpdateState() {
 }
 
 void CleanCoreScene() {
-
+	g_State = CORE_NONE;
+	g_InteractionState = FREE_CAMERA;
+	memset(&g_Camera, 0, sizeof(Camera2D));
+	ClearCells(&g_Map);
+	ARRLIST_DynamicCoordinate_clear(&g_QueuedCells);
+	g_AvailableCells = 100;
+	memset(&g_CapturedCells, 0, 26);
+	memset(&g_Leaderboard, 0, 26);
+	g_GameState = GAME_OK;
 }
 
 void CalculateSurroundings(int64_t x, int64_t y, char* result, int* count) {

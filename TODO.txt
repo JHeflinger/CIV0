@@ -3,11 +3,15 @@ MINOR:
 MEDIUM:
 
 MAJOR:
-    - set up remove planned cells during planning 
-    - clean and debug stuff - maybe make ui colored cells with a lowered alpha  
-    - start screen
+    - on player join send entire map to accomdate static stuff
+    - when cells get added to server send them to rest of clients
+    - ui be more interactable like hover stuff
 
 COMPLETED:
     - add configurable bounds and infinite bounds as in cells will loop back to the other side upon reaching an edge
     - set up so players start out with like 100 cells, and implement the leaderboard
     - implement game over / restart
+    - start screen
+    - disconnect unresponsive clients
+    - set up remove planned cells during planning 
+    - clean and debug stuff - maybe make ui colored cells with a lowered alpha  

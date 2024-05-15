@@ -16,8 +16,10 @@ uint16_t           g_port;
 int                g_configured = FALSE;
 int                g_BoardWidth;
 int                g_BoardHeight;
+int                g_Initialized = FALSE;
 
 void StartServer() {
+	if (g_Initialized == FALSE) InitializeNetwork(SERVER);
 	EZN_CREATE_THREAD(g_ServerAcceptThread, ServerAcceptBehavior, NULL);
 }
 
@@ -31,6 +33,9 @@ void DistributeData(EZN_BYTE* data, size_t size) {
 	for (size_t i = 0; i < g_ConnectedClients.size; i++) {
 		if (ezn_send(g_ConnectedClients.data[i], data, size, &sent) == EZN_ERROR || sent != size) {
 			LOG_WARN("Unable to send data properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)size);
+			LOG_WARN("Disconnecting client");
+			ARRLIST_EZN_SOCKET_remove(&g_ConnectedClients, i);
+			i--;
 		}
 	}
 }
@@ -93,13 +98,17 @@ int InitializeNetwork(NetworkType type) {
 	} else {
 		LOG_FATAL("Unknown network type detected");
 	}
+	g_Initialized = TRUE;
 	return TRUE;
 }
 
 int ShutdownNetwork() {
-	if (g_Type == SERVER && ezn_close_server(&g_Server) == EZN_ERROR) return FALSE;
-	if (ezn_safe_clean() == EZN_ERROR) return FALSE;
-	ezn_clean();
+	if (g_Initialized) {
+		if (g_Type == SERVER && ezn_close_server(&g_Server) == EZN_ERROR) return FALSE;
+		if (ezn_safe_clean() == EZN_ERROR) return FALSE;
+		ezn_clean();
+	}
+	g_Initialized = FALSE;
 	return TRUE;
 }
 
@@ -129,6 +138,13 @@ EZN_STATUS AttatchClient(ezn_Server* server, EZN_SOCKET clientsock) {
 	board_setup.y = g_BoardHeight;
 	size_t sent;
 	if (ezn_send(clientsock, (EZN_BYTE*)&board_setup, sizeof(Coordinate), &sent) == EZN_ERROR || sent != sizeof(Coordinate)) {
+		LOG_WARN("Unable to send data properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)sizeof(Coordinate));
+	}
+	Coordinate id_setup;
+	id_setup.value = '#';
+	id_setup.x = (size_t)(GetRotatingID() - 'A');
+	id_setup.y = 0;
+	if (ezn_send(clientsock, (EZN_BYTE*)&id_setup, sizeof(Coordinate), &sent) == EZN_ERROR || sent != sizeof(Coordinate)) {
 		LOG_WARN("Unable to send data properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)sizeof(Coordinate));
 	}
 	return EZN_NONE;
