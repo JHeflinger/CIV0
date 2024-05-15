@@ -18,6 +18,8 @@ char* GrabClientUpdate(char* packet_type, size_t* datasize);
 int InitializeNetwork(NetworkType type);
 int ShutdownNetwork();
 NetworkType GetNetworkType();
+void ConfigureNetwork(uint8_t* ip, uint16_t port);
+void ConfigureBoard(int width, int height);
 
 void ServerAcceptBehavior(void* params);
 

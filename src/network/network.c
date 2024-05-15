@@ -11,6 +11,11 @@ EZN_MUTEX          g_Mutex;
 EZN_THREAD         g_ServerAcceptThread;
 ARRLIST_EZN_SOCKET g_ConnectedClients; // the sockets of the clients connected to the hosted server
 EZN_SOCKET         g_ServerConnection; // socket of the server that the client is connected to
+uint8_t            g_ip[4];
+uint16_t           g_port;    
+int                g_configured = FALSE;
+int                g_BoardWidth;
+int                g_BoardHeight;
 
 void StartServer() {
 	EZN_CREATE_THREAD(g_ServerAcceptThread, ServerAcceptBehavior, NULL);
@@ -79,12 +84,12 @@ int InitializeNetwork(NetworkType type) {
 	EZN_CREATE_MUTEX(g_Mutex);
 	g_Type = type;
 	if (type == SERVER) {
-		if (ezn_generate_server(&g_Server, FALLBACK_PORT) == EZN_ERROR) return FALSE;
+		if (ezn_generate_server(&g_Server, g_configured ? g_port : FALLBACK_PORT) == EZN_ERROR) return FALSE;
 		if (ezn_open_server(&g_Server) == EZN_ERROR) return FALSE;
 	} else if (type == CLIENT) {
 		uint8_t address[IPV4_ADDR_LENGTH];
 		ezn_str_to_ipaddr(address, FALLBACK_IP);
-		if (ezn_configure_client(&g_Client, FALLBACK_PORT, address) == EZN_ERROR) return FALSE;
+		if (ezn_configure_client(&g_Client, g_configured ? g_port : FALLBACK_PORT, g_configured ? g_ip : address) == EZN_ERROR) return FALSE;
 	} else {
 		LOG_FATAL("Unknown network type detected");
 	}
@@ -102,6 +107,12 @@ NetworkType GetNetworkType() {
 	return g_Type;
 }
 
+void ConfigureNetwork(uint8_t* ip, uint16_t port) {
+	g_configured = TRUE;
+	memcpy(g_ip, ip, sizeof(uint8_t)*4);
+	g_port = port;
+}
+
 void ServerAcceptBehavior(void* params) {
 	while (TRUE) {
 		if (ezn_server_accept(&g_Server, AttatchClient, EZN_FALSE) == EZN_ERROR) {
@@ -112,10 +123,23 @@ void ServerAcceptBehavior(void* params) {
 
 EZN_STATUS AttatchClient(ezn_Server* server, EZN_SOCKET clientsock) {
 	ARRLIST_EZN_SOCKET_add(&g_ConnectedClients, clientsock);
+	Coordinate board_setup;
+	board_setup.value = '@';
+	board_setup.x = g_BoardWidth;
+	board_setup.y = g_BoardHeight;
+	size_t sent;
+	if (ezn_send(clientsock, (EZN_BYTE*)&board_setup, sizeof(Coordinate), &sent) == EZN_ERROR || sent != sizeof(Coordinate)) {
+		LOG_WARN("Unable to send data properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)sizeof(Coordinate));
+	}
 	return EZN_NONE;
 }
 
 EZN_STATUS RegisterServer(ezn_Client* client, EZN_SOCKET serversock) {
 	g_ServerConnection = serversock;
 	return EZN_NONE;
+}
+
+void ConfigureBoard(int width, int height) {
+	g_BoardWidth = width;
+	g_BoardHeight = height;
 }

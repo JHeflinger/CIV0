@@ -385,6 +385,19 @@ void UpdateCells() {
 					GrabValueArray((EZN_BYTE*)g_CapturedCells);
 					size_t ind = (size_t)g_ID - 'A';
 					g_AvailableCells += g_CapturedCells[ind];
+				} else if (coord.value == '@') {
+					g_BoardWidth = (int)coord.x;
+					g_BoardHeight = (int)coord.y;
+					ClearCells(&g_Map);
+					SetMapBounds(&g_Map, g_BoardWidth/2, g_BoardHeight/2);
+					AddCell(&g_Map, 0, -1 * (g_BoardHeight / 2), g_ID);
+					AddCell(&g_Map, 0, (g_BoardHeight / 2), g_ID);
+					AddCell(&g_Map, -1 * (g_BoardWidth / 2), 0, g_ID);
+					AddCell(&g_Map, (g_BoardWidth / 2), 0, g_ID);
+					RemoveCell(&g_Map, 0, -1 * (g_BoardHeight / 2));
+					RemoveCell(&g_Map, 0, (g_BoardHeight / 2));
+					RemoveCell(&g_Map, -1 * (g_BoardWidth / 2), 0);
+					RemoveCell(&g_Map, (g_BoardWidth / 2), 0);
 				} else {
 					g_Map.data[coord.x][coord.y] = coord.value;
 				}
@@ -526,3 +539,7 @@ void CalculateSurroundings(int64_t x, int64_t y, char* result, int* count) {
 	*count = vals[max];
 }
 
+void SetupBoard(int width, int height) {
+	g_BoardWidth = width;
+	g_BoardHeight = height;
+}

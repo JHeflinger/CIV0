@@ -15,12 +15,9 @@ void RunGame() {
 	// disable trivial logs
 	SetTraceLogLevel(LOG_ERROR);
 
-	// initialize easynet
-	InitializeNetwork(server_or_client);
-
 	// initialize window
 	SetConfigFlags(FLAG_VSYNC_HINT);// | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_MAXIMIZED);
-    InitWindow(1400, 900, "CARDS");
+    InitWindow(1400, 900, "Civilization 0");
 
 	// main game loop
     while (!WindowShouldClose())
@@ -48,4 +45,8 @@ void ManageScenes() {
             LOG_FATAL("Unhandled scene detected");
             break;
     }
+}
+
+void ChangeScene(GameState state) {
+    g_CurrentState = state;
 }
