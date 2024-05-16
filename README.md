@@ -5,8 +5,8 @@ a hosted game server. Each player will get an arsenal of cells to place down, an
 to capture and expand their territory!
 
 ## How to Use
-Flora itself is split into 2 main components! This makes it easier for developers to branch out and use flora as not just 
-an editor, but as an API in their own standalone solutions! 
+You can either compile the game from scratch, or check out one of the pre-built binaries! Both windows 
+and linux are supported (sorry if you're a mac user :P)
 
 ### Bazel
 If you have bazel installed, this will be really easy to compile for yourself! To get started, run the following to clone the repository:
