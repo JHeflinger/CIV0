@@ -127,7 +127,7 @@ void ConfigureNetwork(uint8_t* ip, uint16_t port) {
 void ServerAcceptBehavior(void* params) {
 	while (TRUE) {
 		if (ezn_server_accept(&g_Server, AttatchClient, EZN_FALSE) == EZN_ERROR) {
-			LOG_FATAL("an error occured while attempting to accept a client connection");
+			return;
 		}
 	}
 }

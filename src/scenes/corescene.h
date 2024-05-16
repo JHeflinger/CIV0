@@ -3,6 +3,7 @@
 
 #include "utils/datastructs.h"
 #include "easynet.h"
+#include "raylib.h"
 
 #define DEFAULT_CORE_PORT 6969
 
@@ -22,6 +23,7 @@ typedef enum {
 	FREE_PLAN,
 } InteractionState;
 
+int InBox(Vector2 coordinate, int x, int y, int w, int h);
 void DrawCoreScene();
 void DrawCells();
 void DrawArtifacts();

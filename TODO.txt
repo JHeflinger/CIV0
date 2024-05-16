@@ -3,7 +3,6 @@ MINOR:
 MEDIUM:
 
 MAJOR:
-    - ui be more interactable like hover stuff
     - copy/paste
 
 COMPLETED:
@@ -16,3 +15,4 @@ COMPLETED:
     - clean and debug stuff - maybe make ui colored cells with a lowered alpha  
     - on player join send entire map to accomdate static stuff
     - when cells get added to server send them to rest of clients
+    - ui be more interactable like hover stuff

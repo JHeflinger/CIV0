@@ -15,10 +15,6 @@ char height_buffer[6];
 char ip_buffer[15];
 int init = FALSE;
 
-int InBox(Vector2 coordinate, int x, int y, int w, int h) {
-    return coordinate.x >= x && coordinate.x <= x+w && coordinate.y >= y && coordinate.y <= y+h;
-}
-
 void UpdateStartScene() { 
     if (init == FALSE) {
         strcpy(port_buffer, "4000");
@@ -75,6 +71,8 @@ void UpdateStartScene() {
                     ConfigureNetwork(address, port);
                     InitializeNetwork(SERVER);
                     ChangeScene(CORE);
+                    state = 0;
+                    focus = 0;
                 }
             }	
         }
@@ -168,6 +166,8 @@ void UpdateStartScene() {
                     ConfigureNetwork(address, port);
                     InitializeNetwork(CLIENT);
                     ChangeScene(CORE);
+                    state = 0;
+                    focus = 0;
                 }
             }	
         }
@@ -243,24 +243,49 @@ void DrawStartScene() {
 
     int xplus = (GetScreenWidth() - 300) / 2;
     int yplus = (GetScreenHeight() - 50) / 2;
+    Vector2 m_coords = GetMousePosition();
     if (state == 0) {
         DrawRectangle(10 + xplus, 10 + yplus, 300, 60, DARKGRAY);
         DrawRectangle(0 + xplus, 0 + yplus, 300, 60, GRAY);
+        if (InBox(m_coords, 0 + xplus, 0 + yplus, 300, 60)) {
+            DrawRectangle(-30 + xplus, 0 + yplus, 15, 60, YELLOW);
+            DrawRectangle(320 + xplus, 0 + yplus, 15, 60, YELLOW);
+        }
         DrawText("HOST", 100 + xplus, 10 + yplus, 38, RAYWHITE);
 
         DrawRectangle(10 + xplus, 110 + yplus, 300, 60, DARKGRAY);
         DrawRectangle(0 + xplus, 100 + yplus, 300, 60, GRAY);
+        if (InBox(m_coords, 0 + xplus, 100 + yplus, 300, 60)) {
+            DrawRectangle(-30 + xplus, 100 + yplus, 15, 60, YELLOW);
+            DrawRectangle(320 + xplus, 100 + yplus, 15, 60, YELLOW);
+        }
         DrawText("JOIN", 105 + xplus, 110 + yplus, 38, RAYWHITE);
 
         DrawRectangle(10 + xplus, 210 + yplus, 300, 60, DARKGRAY);
         DrawRectangle(0 + xplus, 200 + yplus, 300, 60, GRAY);
+        if (InBox(m_coords, 0 + xplus, 200 + yplus, 300, 60)) {
+            DrawRectangle(-30 + xplus, 200 + yplus, 15, 60, YELLOW);
+            DrawRectangle(320 + xplus, 200 + yplus, 15, 60, YELLOW);
+        }
         DrawText("QUIT", 105 + xplus, 210 + yplus, 38, RAYWHITE);
     }
     if (state == 1) {
         DrawText("PORT", 110 + xplus, -10 + yplus, 30, RAYWHITE);
+        if (focus == 1) {
+            uint16_t port;
+            EZN_STATUS status = ezn_str_to_port(&port, port_buffer);
+            if (port <= 1024) status = EZN_ERROR;
+            DrawRectangle(-5 + xplus, 25 + yplus, 310, 50, status == EZN_ERROR ? RED : YELLOW);
+        }
         DrawRectangle(0 + xplus, 30 + yplus, 300, 40, LIGHTGRAY);
         DrawText(port_buffer, (GetScreenWidth()/2) - (CalculateLength(port_buffer)/2), 35 + yplus, 30, DARKGRAY);
-        DrawText("BOARD SIZE", 55 + xplus, 90 + yplus, 30, RAYWHITE);
+        DrawText("BOARD SIZE", 55 + xplus, 90 + yplus, 30, RAYWHITE); 
+        if (focus == 2) {
+            DrawRectangle(-5 + xplus, 135 + yplus, 120, 50, YELLOW);
+        }
+        if (focus == 3) {
+            DrawRectangle(185 + xplus, 135 + yplus, 120, 50, YELLOW);
+        }
         DrawRectangle(0 + xplus, 140 + yplus, 110, 40, LIGHTGRAY);
         DrawText(width_buffer, (GetScreenWidth()/2) - 95 - (CalculateLength(width_buffer)/2), 145 + yplus, 30, DARKGRAY);
         DrawRectangle(190 + xplus, 140 + yplus, 110, 40, LIGHTGRAY);
@@ -270,20 +295,43 @@ void DrawStartScene() {
         DrawRectangle(190 + xplus, 240 + yplus, 120, 60, DARKGRAY);
         DrawRectangle(0 + xplus, 230 + yplus, 120, 60, GRAY);
         DrawRectangle(180 + xplus, 230 + yplus, 120, 60, GRAY);
+        if (InBox(m_coords, 0 + xplus, 230 + yplus, 120, 60)) {
+            DrawRectangle(-30 + xplus, 230 + yplus, 15, 60, YELLOW);
+        }
+        if (InBox(m_coords, 180 + xplus, 230 + yplus, 120, 60)) {
+            DrawRectangle(320 + xplus, 230 + yplus, 15, 60, YELLOW);
+        }
         DrawText("BACK", 10 + xplus, 240 + yplus, 38, RAYWHITE);
         DrawText("GO", 215 + xplus, 240 + yplus, 38, RAYWHITE);
     }
     if (state == 2) {
         DrawText("PORT", 110 + xplus, -10 + yplus, 30, RAYWHITE);
+        if (focus == 4) {
+            uint16_t port;
+            EZN_STATUS status = ezn_str_to_port(&port, port_buffer);
+            if (port <= 1024) status = EZN_ERROR;
+            DrawRectangle(-5 + xplus, 25 + yplus, 310, 50, status == EZN_ERROR ? RED : YELLOW);
+        }
         DrawRectangle(0 + xplus, 30 + yplus, 300, 40, LIGHTGRAY);
         DrawText(port_buffer, (GetScreenWidth()/2) - (CalculateLength(port_buffer)/2), 35 + yplus, 30, DARKGRAY);
         DrawText("IP", 135 + xplus, 90 + yplus, 30, RAYWHITE);
+        if (focus == 5) {
+            uint8_t address[4];
+            EZN_STATUS status = ezn_str_to_ipaddr(address, ip_buffer);
+            DrawRectangle(-5 + xplus, 135 + yplus, 310, 50, status == EZN_ERROR ? RED : YELLOW);
+        }
         DrawRectangle(0 + xplus, 140 + yplus, 300, 40, LIGHTGRAY);
         DrawText(ip_buffer, (GetScreenWidth()/2) - (CalculateLength(ip_buffer)/2), 145 + yplus, 30, DARKGRAY);
         DrawRectangle(10 + xplus, 240 + yplus, 120, 60, DARKGRAY);
         DrawRectangle(190 + xplus, 240 + yplus, 120, 60, DARKGRAY);
         DrawRectangle(0 + xplus, 230 + yplus, 120, 60, GRAY);
         DrawRectangle(180 + xplus, 230 + yplus, 120, 60, GRAY);
+        if (InBox(m_coords, 0 + xplus, 230 + yplus, 120, 60)) {
+            DrawRectangle(-30 + xplus, 230 + yplus, 15, 60, YELLOW);
+        }
+        if (InBox(m_coords, 180 + xplus, 230 + yplus, 120, 60)) {
+            DrawRectangle(320 + xplus, 230 + yplus, 15, 60, YELLOW);
+        }
         DrawText("BACK", 10 + xplus, 240 + yplus, 38, RAYWHITE);
         DrawText("GO", 215 + xplus, 240 + yplus, 38, RAYWHITE);
     }

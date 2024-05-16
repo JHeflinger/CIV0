@@ -26,6 +26,10 @@ CoreGameState                g_GameState          = GAME_OK;
 int                          g_BoardWidth         = 100;
 int                          g_BoardHeight        = 100;
 
+int InBox(Vector2 coordinate, int x, int y, int w, int h) {
+    return coordinate.x >= x && coordinate.x <= x+w && coordinate.y >= y && coordinate.y <= y+h;
+}
+
 void DrawCellBorder(float x, float y) {
 	DrawLine(x, y, x + CELLSIZE, y, RAYWHITE);
 	DrawLine(x, y, x, y + CELLSIZE, RAYWHITE);
@@ -168,6 +172,10 @@ void DrawUI() {
 		DrawText("ENTR", GetScreenWidth() - 80, 276, 22, LIGHTGRAY);
 		DrawText("Submit blueprint", GetScreenWidth() - 240, 279, 18, RAYWHITE);
 	}
+	DrawRectangle(GetScreenWidth() - 53, GetScreenHeight() - 53, 40, 40, DARKGRAY);
+	DrawRectangle(GetScreenWidth() - 50, GetScreenHeight() - 56, 40, 40, GRAY);
+	DrawText("Q", GetScreenWidth() - 40, GetScreenHeight() - 49, 28, LIGHTGRAY);
+	DrawText("Quit", GetScreenWidth() - 95, GetScreenHeight() - 42, 18, RAYWHITE);
 
 	// show team
 	DrawRectangle(20, GetScreenHeight() - 70, 50, 50, WHITE);
@@ -194,19 +202,22 @@ void DrawUI() {
 }
 
 void DrawOverlay() {
-	char buffer[1024];
 	if (g_GameState == GAME_OVER) {
+    	Vector2 m_coords = GetMousePosition();
 		DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), CLITERAL(Color){ 0, 0, 0, 150 });
-		sprintf(buffer, "GAME OVER");
-		DrawText(buffer, (GetScreenWidth() / 2) - 255 + 10, (GetScreenHeight() / 2) - 37 - 80, 80, RAYWHITE);
+		DrawText("GAME OVER", (GetScreenWidth() / 2) - 255 + 10, (GetScreenHeight() / 2) - 37 - 80, 80, RAYWHITE);
 		DrawRectangle((GetScreenWidth() / 2) - 115, (GetScreenHeight() / 2) + 70 - 80, 250, 50, DARKGRAY);
+		if (InBox(m_coords, (GetScreenWidth() / 2) - 125, (GetScreenHeight() / 2) + 60 - 80, 250, 50)) {
+			DrawRectangle((GetScreenWidth() / 2) - 135, (GetScreenHeight() / 2) + 60 - 90, 270, 70, YELLOW);
+		}
 		DrawRectangle((GetScreenWidth() / 2) - 125, (GetScreenHeight() / 2) + 60 - 80, 250, 50, GRAY);
-		sprintf(buffer, "HOME");
-		DrawText(buffer, (GetScreenWidth() / 2) - 45, (GetScreenHeight() / 2) + 70 - 80, 30, RAYWHITE);
+		DrawText("HOME", (GetScreenWidth() / 2) - 45, (GetScreenHeight() / 2) + 70 - 80, 30, RAYWHITE);
 		DrawRectangle((GetScreenWidth() / 2) - 115, (GetScreenHeight() / 2) + 150 - 80, 250, 50, DARKGRAY);
+		if (InBox(m_coords, (GetScreenWidth() / 2) - 125, (GetScreenHeight() / 2) + 140 - 80, 250, 50)) {
+			DrawRectangle((GetScreenWidth() / 2) - 135, (GetScreenHeight() / 2) + 140 - 90, 270, 70, YELLOW);
+		}
 		DrawRectangle((GetScreenWidth() / 2) - 125, (GetScreenHeight() / 2) + 140 - 80, 250, 50, GRAY);
-		sprintf(buffer, "RE-JOIN");
-		DrawText(buffer, (GetScreenWidth() / 2) - 60, (GetScreenHeight() / 2) + 150 - 80, 30, RAYWHITE);
+		DrawText( "RE-JOIN", (GetScreenWidth() / 2) - 60, (GetScreenHeight() / 2) + 150 - 80, 30, RAYWHITE);
 	}
 }
 
@@ -268,11 +279,11 @@ void MainCoreScene() {
 	// update cells
 	UpdateCells();
 
-	// update leaderboard
-	UpdateLeaderboard();
-
 	// update user input
 	UpdateUser();
+
+	// update leaderboard
+	UpdateLeaderboard();
 	
 	// update server (if possible)
 	UpdateServer();
@@ -341,10 +352,17 @@ void UpdateUser() {
 	}
 
 	// switch planning states
-	if (IsKeyReleased(KEY_P)) {
+	if (IsKeyPressed(KEY_P)) {
 		if (g_InteractionState == FREE_PLAN) 
 			ARRLIST_DynamicCoordinate_clear(&g_QueuedCells);
 		g_InteractionState = g_InteractionState == FREE_CAMERA ? FREE_PLAN : FREE_CAMERA;
+	}
+
+	// quit
+	if (IsKeyPressed(KEY_Q) && g_GameState == GAME_OK) {
+		CleanCoreScene();
+		ChangeScene(TITLE);
+		ShutdownNetwork();
 	}
 
 	if (g_GameState == GAME_OVER) {
@@ -356,6 +374,7 @@ void UpdateUser() {
 			IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 			CleanCoreScene();
 			ChangeScene(TITLE);
+			ShutdownNetwork();
 		} else if (mouse_coords.x > (GetScreenWidth() / 2) - 125 && 
 			mouse_coords.x < (GetScreenWidth() / 2) - 125 + 250 &&
 			mouse_coords.y > (GetScreenHeight() / 2) + 140 - 80 &&
