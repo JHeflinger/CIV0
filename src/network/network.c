@@ -2,6 +2,8 @@
 #include "core/logger.h"
 #include "data/gconfig.h"
 #include "network/teams.h"
+#include "scenes/corescene.h"
+#include "data/cellmap.h"
 #include "utils/datastructs.h"
 
 ezn_Server         g_Server = { 0 }; // the server that is being hosted
@@ -147,6 +149,23 @@ EZN_STATUS AttatchClient(ezn_Server* server, EZN_SOCKET clientsock) {
 	if (ezn_send(clientsock, (EZN_BYTE*)&id_setup, sizeof(Coordinate), &sent) == EZN_ERROR || sent != sizeof(Coordinate)) {
 		LOG_WARN("Unable to send data properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)sizeof(Coordinate));
 	}
+	ARRLIST_Coordinate currcoords = { 0 };
+	Cellmap cells = *((Cellmap*)GetRawMap());
+	for (size_t i = 0; i < cells.width; i++) {
+		for (size_t j = 0; j < cells.height; j++) {
+			if (cells.data[i][j] != (uint8_t)'\0') {
+				Coordinate coord;
+				coord.x = i;
+				coord.y = j;
+				coord.value = (char)cells.data[i][j];
+				ARRLIST_Coordinate_add(&currcoords, coord);
+			}
+		}
+	}
+	if (ezn_send(clientsock, (EZN_BYTE*)currcoords.data, sizeof(Coordinate) * currcoords.size, &sent) == EZN_ERROR || sent != sizeof(Coordinate) * currcoords.size) {
+		LOG_WARN("Unable to send data properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)(sizeof(Coordinate) * currcoords.size));
+	}
+	ARRLIST_Coordinate_clear(&currcoords);
 	return EZN_NONE;
 }
 

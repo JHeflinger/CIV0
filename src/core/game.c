@@ -5,7 +5,7 @@
 #include "network/network.h"
 #include "raylib.h"
 
-GameState g_CurrentState = CORE;
+GameState g_CurrentState = TITLE;
 
 // temp
 int server_or_client;

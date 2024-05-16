@@ -13,12 +13,20 @@ char port_buffer[5];
 char width_buffer[6];
 char height_buffer[6];
 char ip_buffer[15];
+int init = FALSE;
 
 int InBox(Vector2 coordinate, int x, int y, int w, int h) {
     return coordinate.x >= x && coordinate.x <= x+w && coordinate.y >= y && coordinate.y <= y+h;
 }
 
 void UpdateStartScene() { 
+    if (init == FALSE) {
+        strcpy(port_buffer, "4000");
+        strcpy(width_buffer, "100");
+        strcpy(height_buffer, "100");
+        strcpy(ip_buffer, "127.0.0.1");
+        init = TRUE;
+    }
     int xplus = (GetScreenWidth() - 300) / 2;
     int yplus = (GetScreenHeight() - 50) / 2;
     Vector2 m_coords = GetMousePosition();

@@ -456,7 +456,6 @@ void UpdateCells() {
 					RemoveCell(&g_Map, (g_BoardWidth / 2), 0);
 				} else if (coord.value == '#') {
 					g_ID = (char)(coord.x + 'A');
-					LOG_INFO("hey: %c", g_ID);
 				} else {
 					g_Map.data[coord.x][coord.y] = coord.value;
 				}
@@ -521,17 +520,26 @@ void UpdateServer() {
 		char packet_type;
 		char* client_data = GrabClientUpdate(&packet_type, &datasize);
 		if (client_data != NULL) {
+			ARRLIST_Coordinate distrib = { 0 };
 			switch (packet_type) {
 				case 'q':
 					DynamicCoordinate* coords = (DynamicCoordinate*)client_data;
 					for (int i = 0; i < (datasize / sizeof(DynamicCoordinate)); i++) {
-						if (GetCell(&g_Map, coords[i].x, coords[i].y) == '\0')
+						if (GetCell(&g_Map, coords[i].x, coords[i].y) == '\0') {
 							AddCell(&g_Map, coords[i].x, coords[i].y, coords[i].value);
+							Coordinate coord;
+							coord.value = coords[i].value;
+							coord.x = (size_t)(coords[i].x - g_Map.x);
+							coord.y = (size_t)(coords[i].y - g_Map.y);
+							ARRLIST_Coordinate_add(&distrib, coord);
+						}
 					}
 					break;
 				default:
 					LOG_WARN("Unknown packet type recieved, unable to properly process client data of type %d - %c", (int)packet_type, packet_type);
 			}
+			DistributeData((EZN_BYTE*)distrib.data, distrib.size * sizeof(Coordinate));
+			ARRLIST_Coordinate_clear(&distrib);
 			free(client_data);
 		}
 	}
@@ -609,4 +617,8 @@ void CalculateSurroundings(int64_t x, int64_t y, char* result, int* count) {
 void SetupBoard(int width, int height) {
 	g_BoardWidth = width;
 	g_BoardHeight = height;
+}
+
+void* GetRawMap() {
+	return (void*)&g_Map;
 }
