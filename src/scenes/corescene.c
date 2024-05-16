@@ -589,8 +589,8 @@ void CleanCoreScene() {
 	ClearCells(&g_Map);
 	ARRLIST_DynamicCoordinate_clear(&g_QueuedCells);
 	g_AvailableCells = 100;
-	memset(&g_CapturedCells, 0, 26);
-	memset(&g_Leaderboard, 0, 26);
+	memset(&g_CapturedCells, 0, sizeof(uint64_t)*26);
+	memset(&g_Leaderboard, 0, sizeof(uint64_t)*26);
 	g_GameState = GAME_OK;
 }
 

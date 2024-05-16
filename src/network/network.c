@@ -16,8 +16,8 @@ EZN_SOCKET         g_ServerConnection; // socket of the server that the client i
 uint8_t            g_ip[4];
 uint16_t           g_port;    
 int                g_configured = FALSE;
-int                g_BoardWidth;
-int                g_BoardHeight;
+int                g_NBoardWidth;
+int                g_NBoardHeight;
 int                g_Initialized = FALSE;
 
 void StartServer() {
@@ -136,8 +136,8 @@ EZN_STATUS AttatchClient(ezn_Server* server, EZN_SOCKET clientsock) {
 	ARRLIST_EZN_SOCKET_add(&g_ConnectedClients, clientsock);
 	Coordinate board_setup;
 	board_setup.value = '@';
-	board_setup.x = g_BoardWidth;
-	board_setup.y = g_BoardHeight;
+	board_setup.x = g_NBoardWidth;
+	board_setup.y = g_NBoardHeight;
 	size_t sent;
 	if (ezn_send(clientsock, (EZN_BYTE*)&board_setup, sizeof(Coordinate), &sent) == EZN_ERROR || sent != sizeof(Coordinate)) {
 		LOG_WARN("Unable to send data properly - only able to send %lu/%lu bytes", (unsigned long)sent, (unsigned long)sizeof(Coordinate));
@@ -175,6 +175,6 @@ EZN_STATUS RegisterServer(ezn_Client* client, EZN_SOCKET serversock) {
 }
 
 void ConfigureBoard(int width, int height) {
-	g_BoardWidth = width;
-	g_BoardHeight = height;
+	g_NBoardWidth = width;
+	g_NBoardHeight = height;
 }
