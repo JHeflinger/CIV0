@@ -7,16 +7,13 @@
 
 GameState g_CurrentState = TITLE;
 
-// temp
-int server_or_client;
-void trash_func(int var) { server_or_client = var; }
-
 void RunGame() {
+
 	// disable trivial logs
 	SetTraceLogLevel(LOG_ERROR);
 
 	// initialize window
-	SetConfigFlags(FLAG_VSYNC_HINT);// | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_MAXIMIZED);
+	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_MAXIMIZED);
     InitWindow(1400, 900, "Civilization 0");
 
 	// main game loop
